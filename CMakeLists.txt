@@ -32,8 +32,8 @@ add_custom_command(
 add_custom_target(doc DEPENDS api-docs/index.html)
 
 add_custom_command(
-  OUTPUT api-docs/index.html
+  OUTPUT api-userdocs/index.html
   COMMAND idl -e mgunit_build_userdocs
   DEPENDS ${PRO_FILES} ${IDLDOC_FILES}
 )
-add_custom_target(doc DEPENDS api-userdocs/index.html)
+add_custom_target(userdoc DEPENDS api-userdocs/index.html)
