@@ -1,3 +1,6 @@
 [submodule "lib"]
 	path = lib
 	url = https://github.com/mgalloy/mglib.git
+[submodule "mgcmake"]
+	path = mgcmake
+	url = https://github.com/mgalloy/mgcmake.git
