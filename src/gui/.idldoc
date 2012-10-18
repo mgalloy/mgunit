@@ -1,0 +1,49 @@
+GUI testing
+-----------
+
+This directory contains some routines to help test IDL GUI applications.
+
+Applications are difficult to test. Even though these routines can help create test suites for GUIs, the application must be written with making testing possible, e.g., adding routines/methods to your application to output certain values, the ability to change the main (and only) event handler for your application, etc.
+
+
+Basic plan
+----------
+
+As an example, suppose I would like to test an application with main launch routine `MY_APPLICATION` and event handler `MY_APPLICATION_EVENT`. The two basic steps to test this application are: 1) record a sequence of IDL events that should be tested, and 2) write a test that plays these events back to the GUI and then checks the state of the GUI in some way
+
+The basic plan to record and playback events for the application is to insert a special event handler between `XMANAGER` and the regular event handler, `MY_APPLICATION_EVENT`. As part of the preparation to make my application testable, I need to be able to run my application with different event handlers, so I will add an `EVENT_HANDLER` keyword to `MY_APPLICATION`. By default, `EVENT_HANDLER` will be "MY_APPLICATION_EVENT", but I can set it to different values when I launch my application.
+
+
+Recording the event sequence
+----------------------------
+
+To record the sequence of events (which I would only need to do once for a given test, until something changes), I would do the following at the IDL command line::
+
+   IDL> mgunit_event_setup, filename='test1.txt', $
+   IDL>                     event_handler='my_application_event', /record
+   IDL> my_application, event_handler='mgunit_event_recorder'
+
+This launches my application where I can perform the sequence of actions. The events for these actions are saved to `test1.txt` and also passed along to my application so that it can react as normal. When I have entered the sequence of actions, then at the command line I do::
+
+   IDL> mgunit_event_setup, /stop
+
+
+Playing the event sequence
+--------------------------
+
+To play back a sequence of events, typically in a test case, we will do something like::
+
+   function my_application_ut::test_basic1
+     compile_opt strictarr
+     
+     mgunit_event_setup, filename='test1.txt', $
+                         event_handler='my_application_event'
+     my_application, tlb=tlb
+     mgunit_event_player
+     
+     my_application_helper, tlb=tlb, value=value
+     
+     assert, value eq correct_value, 'incorrect value: %s', value
+     
+     return, 1
+   end

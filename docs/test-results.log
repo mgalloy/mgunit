@@ -1,0 +1,17 @@
+[35m"All tests" test suite starting (1 test suite/case, 9 tests)[0m
+[35m   "mglib_uts" test suite starting (2 test suites/cases, 9 tests)[0m
+[34m      "mg_evalexpr_ut" test case starting (8 tests)[0m
+         test_basic: [32mpassed[0m (0.006570 seconds)
+         test_error1: [32mpassed[0m (0.000396 seconds)
+         test_function1: [32mpassed[0m (0.001040 seconds)
+         test_order1: [32mpassed[0m (0.000442 seconds)
+         test_order2: [32mpassed[0m (0.000826 seconds)
+         test_order3: [32mpassed[0m (0.001457 seconds)
+         test_subshash: [32mpassed[0m (0.004958 seconds)
+         test_subsstruct: [32mpassed[0m (0.000517 seconds)
+[34m      Results: 8 / 8 tests passed, 0 skipped[0m
+[34m      "mg_linear_function_ut" test case starting (1 test)[0m
+         test_basic: [32mpassed[0m (0.000163 seconds)
+[34m      Results: 1 / 1 tests passed, 0 skipped[0m
+[35m   Results: 9 / 9 tests passed, 0 skipped[0m
+[35mResults: 9 / 9 tests passed, 0 skipped[0m
