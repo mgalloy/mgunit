@@ -1,0 +1,4 @@
+set(MGUNIT_IDL_PATH "+${CMAKE_CURRENT_SOURCE_DIR}/src:+${CMAKE_CURRENT_SOURCE_DIR}/lib/src:<IDL_DEFAULT>")
+execute_process(
+  COMMAND idl -IDL_STARTUP "" -IDL_PATH "${MGUNIT_IDL_PATH}" mgunit_build
+)

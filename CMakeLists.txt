@@ -18,7 +18,6 @@ endif ()
 cmake_minimum_required(VERSION 2.8.3)
 
 add_subdirectory(docs)
-#add_subdirectory(lib)
 add_subdirectory(src)
 
 file(GLOB_RECURSE PRO_FILES "src/*.pro")
@@ -37,3 +36,7 @@ add_custom_command(
   DEPENDS ${PRO_FILES} ${IDLDOC_FILES}
 )
 add_custom_target(userdoc DEPENDS api-userdocs/index.html)
+
+install(FILES README.rst COPYING.rst RELEASE.rst DESTINATION .)
+install(SCRIPT mgunit_build.cmake)
+install(FILES mgunit.sav DESTINATION lib)

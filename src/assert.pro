@@ -49,10 +49,11 @@ pro assert, condition, msg, arg1, arg2, arg3, skip=skip
     null = check_math()
     if (keyword_set(skip)) then (scope_varfetch('self', level=-1))->skip
 
+    default_msg = 'Assertion failed'
     case n_params() of
       0: 
-      1: message, 'Assertion failed'
-      2: message, msg
+      1: message, default_msg
+      2: if (n_elements(msg) gt 0L) then message, msg else message, default_msg
       3: message, string(arg1, format='(%"' + msg + '")')
       4: message, string(arg1, arg2, format='(%"' + msg + '")')
       5: message, string(arg1, arg2, arg3, format='(%"' + msg + '")')

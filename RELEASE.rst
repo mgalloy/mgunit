@@ -10,6 +10,12 @@ mgunit 1.3
 
 * Updated "Using mgunit" documentation.
 
+* Adding error_is_skip.pro batch file with optional variable MGUNIT_SKIP_MSG 
+  which can be set prior to including error_is_skip.pro to a message that will
+  be used if an error causes the skip.
+
+* Updated look for HTML output.
+
 
 mgunit 1.2
 ----------

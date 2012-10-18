@@ -1,12 +1,12 @@
 body { 
   font-family: Helvetica;
-  font-size: 11pt;
+  font-size: 13pt;
 }
 
 .passed { color: #060; }
 .failed { color: #C00; }
 .skipped { color: #CC0; }
-.time { color: #888; font-size: 9pt; margin-left: 1em; }
+.time { color: #888; font-size: 70%; margin-left: 2em; }
 .results { }
 
 .testsuite { }
@@ -15,9 +15,12 @@ body {
 ol li { }
 
 #dateline {
-  font-size: 9pt;
   font-style: italic;
+  color: #888;
 }
 
-.suitename { font-weight: bold; color: blue; }
+.suitename { color: blue; }
 .casename { color: blue; }
+
+ul.testsuite { list-style-type: circle; }
+ul.testcase {list-style-type: square; }

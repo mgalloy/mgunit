@@ -1,6 +1,6 @@
 ;+
-; Builds the mgunit sav file. A typo on line 78 of parse_url.pro (IDL 6.4, 7.0)
-; must be fixed for this build process to work.
+; Builds the `mgunit` sav file. A typo on line 78 of parse_url.pro (IDL 6.4, 
+; 7.0) must be fixed for this build process to work.
 ;-
 
 ; clear any other compilations
