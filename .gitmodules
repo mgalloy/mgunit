@@ -4,3 +4,6 @@
 [submodule "mgcmake"]
 	path = mgcmake
 	url = https://github.com/mgalloy/mgcmake.git
+[submodule "idldoc"]
+	path = idldoc
+	url = https://github.com/mgalloy/idldoc.git
