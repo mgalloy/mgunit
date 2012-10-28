@@ -6,7 +6,7 @@
 ;
 ; :Private:
 ;
-; :Returns: 
+; :Returns:
 ;    1 if current term is a TTY, 0 if not
 ;-
 function mgunit_findIfTty
@@ -41,7 +41,7 @@ end
 ;
 ; :Keywords:
 ;    filename : in, optional, type=string
-;       name of file to send output to; if not present sends output to the 
+;       name of file to send output to; if not present sends output to the
 ;       output log
 ;    color : in, optional, type=boolean
 ;       set to print color output to the output log
@@ -84,7 +84,7 @@ pro mgunit, tests, filename=filename, html=html, xml=xml, gui=gui, junit=junit, 
     keyword_set(junit): runnerName = 'MGutJUnitRunner'
     else: runnerName = 'MGutCliRunner'
   endcase
-  
+
   _color = (keyword_set(color) || mgunit_findIfTty()) && (n_elements(filename) eq 0L)
 
   if (n_elements(tests) gt 0) then begin
@@ -101,13 +101,13 @@ pro mgunit, tests, filename=filename, html=html, xml=xml, gui=gui, junit=junit, 
     testRunner->add, obj_new(runnerName, parent=testRunner, $
                              filename=filename, color=_color, $
                              test_suite=testsuite)
-  
+
     testsuite->add, tests
     testsuite->run
     if (keyword_set(failuresOnly)) then testsuite->display
     testsuite->getProperty, npass=npass, nfail=nfail, nskip=nskip, $
                             ntests=ntests
-    
+
     if (~keyword_set(gui)) then obj_destroy, testRunner
   endif
 end

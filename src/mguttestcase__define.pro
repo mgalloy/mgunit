@@ -1,9 +1,9 @@
 ; docformat = 'rst'
 
 ;+
-; Subclass `MGutTestCase` to actually write tests. In a subclass of 
-; `MGutTestCase`, any function method whose name starts with "test" will be 
-; considered a test. Tests are executed and results are reported to the test 
+; Subclass `MGutTestCase` to actually write tests. In a subclass of
+; `MGutTestCase`, any function method whose name starts with "test" will be
+; considered a test. Tests are executed and results are reported to the test
 ; runner object.
 ;
 ; :Examples:
@@ -28,13 +28,13 @@
 ; :Properties:
 ;    npass : type=integer
 ;       number of passing tests
-;    nfail : type=integer 
+;    nfail : type=integer
 ;       number of failing tests
-;    nskip : type=integer 
+;    nskip : type=integer
 ;       number of skipped tests
 ;    ntests : type=integer
 ;       number of tests
-;    testnames : type=strarr 
+;    testnames : type=strarr
 ;       array of method names which begin with "test"
 ;-
 
@@ -70,12 +70,12 @@ end
 
 
 ;+
-; This is a safe place to actually run a single test. Any errors that occur 
+; This is a safe place to actually run a single test. Any errors that occur
 ; are assumed to be from the test and recorded as a failure for it.
 ;
 ; :Private:
 ;
-; :Returns: 
+; :Returns:
 ;    boolean
 ;
 ; :Params:
@@ -146,14 +146,14 @@ pro mguttestcase::_runTeardown, fail=fail
   compile_opt strictarr
 
   fail = 0L
-  
+
   catch, error
   if (error ne 0L) then begin
     catch, /cancel
     fail = 1L
     return
   endif
-    
+
   self->teardown
 end
 
@@ -188,7 +188,7 @@ pro mguttestcase::display
   compile_opt strictarr
 
   if (self.nfail eq 0L) then return
-  
+
   self.testRunner->reportTestCaseStart, strlowcase(obj_class(self)), $
                                         ntests=self.ntests, $
                                         level=self.level
@@ -209,7 +209,7 @@ end
 
 
 ;+
-; Run the tests for this class (i.e. methods with names that start with 
+; Run the tests for this class (i.e. methods with names that start with
 ; "test").
 ;
 ; :Private:
@@ -220,7 +220,7 @@ pro mguttestcase::run
   self.npass = 0L
   self.nfail = 0L
   self.nskip = 0L
-  
+
   if (~self.failuresOnly) then begin
     self.testRunner->reportTestCaseStart, strlowcase(obj_class(self)), $
                                           ntests=self.ntests, $
@@ -236,26 +236,26 @@ pro mguttestcase::run
     result = 0L         ; assume test failed
     setupFailed = 0L    ; assume setup/teardown worked unless otherwise told
     teardownFailed = 0L
-    
+
     self->_runSetup, fail=setupFailed
     if (~setupFailed) then begin
       self.skipped = 0B
       result = self->runTest((*self.testnames)[t], message=msg)
-      self->_runTeardown, fail=teardownFailed  
+      self->_runTeardown, fail=teardownFailed
     endif
-    
+
     passed = result && ~setupFailed && ~teardownFailed
-    
+
     if (setupFailed) then begin
       msg = !error_state.msg
-      self->_removePrefix, msg, 'ASSERT: '      
+      self->_removePrefix, msg, 'ASSERT: '
       msg = 'setup failed: ' + msg
     endif
-    
+
     if (result && teardownFailed) then begin
       msg = !error_state.msg      
-      self->_removePrefix, msg, 'ASSERT: '      
-      msg = 'teardown failed: ' + msg    
+      self->_removePrefix, msg, 'ASSERT: '
+      msg = 'teardown failed: ' + msg
     endif
 
     if (self.skipped) then begin
@@ -269,16 +269,16 @@ pro mguttestcase::run
         ++self.nfail
       endelse
     endelse
-    
+
     ; remove method name from msg, if present
     self->_removePrefix, msg, obj_class(self) + '::' + (*self.testnames)[t] + ': '
 
-    ; remove ASSERT from msg if present 
+    ; remove ASSERT from msg if present
     self->_removePrefix, msg, 'ASSERT: '
     
     ; construct the log message for the test
     logMsg = (passed && ~self.skipped) $
-             ? '' $ 
+             ? '' $
              : (n_elements(msg) eq 0 $
                 ? '' $
                 : msg)
@@ -302,14 +302,14 @@ end
 
 
 ;+
-; Find the name and number of tests (i.e. methods with names that start with 
+; Find the name and number of tests (i.e. methods with names that start with
 ; "test").
 ;
 ; :Private:
 ;-
 pro mguttestcase::findTestnames
   compile_opt strictarr
-  
+
   ; find tests: any method with name test*
   help, /routines, output=routines
   functionsPos = where(strmatch(routines, 'Compiled Functions:'), count)
@@ -370,7 +370,7 @@ end
 ;-
 pro mguttestcase::setLevel, level
   compile_opt strictarr
-  
+
   self.level = level
 end
 
@@ -402,16 +402,16 @@ function mguttestcase::init, test_runner=testRunner, failures_only=failuresOnly
 
   self.testRunner = testRunner
   self.failuresOnly = keyword_set(failuresOnly)
-  
+
   self.testnames = ptr_new(/allocate_heap)
   self.logmsgs = ptr_new(/allocate_heap)
   self.passes = ptr_new(/allocate_heap)
-  
+
   self->findTestnames
 
   *self.logmsgs = strarr(n_elements(*self.testnames))
   *self.passes = bytarr(n_elements(*self.testnames))
-  
+
   self.level = 0L
 
   return, 1B
@@ -422,21 +422,21 @@ end
 ; Define member variables.
 ;
 ; :Fields:
-;    testRunner 
+;    testRunner
 ;       subclass of `MGtestRunner`
-;    testnames 
+;    testnames
 ;       pointer to string array of method names that start with "test"
 ;    logmsgs
 ;       pointer to string array of log message for each test
 ;    passes
 ;       point to byte array of pass/fail status for each test
-;    level 
+;    level
 ;       number of layers down from the top-containing suite
-;    ntests 
+;    ntests
 ;       total number of tests
-;    npass 
+;    npass
 ;       number of passing tests
-;    nfail 
+;    nfail
 ;       number of failing tests
 ;    time
 ;       time for the current test to run
@@ -458,7 +458,7 @@ pro mguttestcase__define
              nskip: 0L, $
              time: 0.0D, $
              skipped: 0B, $
-             failuresOnly: 0B $             
-             }             
+             failuresOnly: 0B $
+           }
 end
 
