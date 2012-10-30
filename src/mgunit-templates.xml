@@ -5,7 +5,7 @@
 ;-
 pro ${classname}_ut::setup
   compile_opt strictarr
-  
+
 end
 
 
@@ -14,19 +14,22 @@ end
 ;-
 pro ${classname}_ut::teardown
   compile_opt strictarr
-  
-end
 
-
-function ${classname}_ut::test${cursor}
-  compile_opt strictarr
-
-  return, 1  
 end
 
 
 ;+
-; Define instance variables.    
+; Example test.
+;-
+function ${classname}_ut::test${cursor}
+  compile_opt strictarr
+
+  return, 1
+end
+
+
+;+
+; Define instance variables.
 ;-
 pro ${classname}_ut__define
   compile_opt strictarr
@@ -37,13 +40,13 @@ end
 
 ;+
 ; Initialize object, adding all test cases.
-; 
+;
 ; :Returns:
-;    1 for success, 0 for failure
+;   1 for success, 0 for failure
 ;
 ; :Keywords:
-;    _extra : in, optional, type=keywords
-;          keywords to MGutTestSuite::init
+;   _extra : in, optional, type=keywords
+;     keywords to `MGutTestSuite::init`
 ;-
 function ${testsuite}_uts::init, _extra=e
   compile_opt strictarr

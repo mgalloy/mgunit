@@ -7,11 +7,11 @@
 ; :Private:
 ;
 ; :Returns:
-;    1 if current term is a TTY, 0 if not
+;   1 if current term is a TTY, 0 if not
 ;-
 function mgunit_findIfTty
   compile_opt strictarr, hidden
-  
+
   catch, error
   if (error ne 0L) then begin
     catch, /cancel
@@ -26,48 +26,54 @@ end
 ; Runs unit tests provided.
 ;
 ; :Examples:
-;    If there tests `test1_ut__define.pro` and test2_ut__define.pro` had been
-;    created, then they could be run like::
+;   If test cases `my_routine1_ut__define.pro` and `my_routine2_ut__define.pro`
+;   had been created, then they could be run like::
 ;
-;       IDL> mgunit, ['test1_ut', 'test2_ut']
+;     IDL> mgunit, ['my_routine1_ut', 'my_routine2_ut']
 ;
-;    Or one test could be run individually like::
+;   Or one test case could be run individually like::
 ;
-;       IDL> mgunit, 'test1_ut'
-; 
+;     IDL> mgunit, 'my_routine1_ut'
+;
+;   Even an individual test can be run, such as::
+;
+;     IDL> mgunit, 'my_routine1_ut.test_basic'
+;
+;
 ; :Params:
-;    tests : in, optional, type=strarr
-;       array of test suite and/or test case classnames
+;   tests : in, optional, type=strarr
+;     array of test suite and/or test case classnames, also may indicate
+;     individual tests within a test case using a `.`
 ;
 ; :Keywords:
-;    filename : in, optional, type=string
-;       name of file to send output to; if not present sends output to the
-;       output log
-;    color : in, optional, type=boolean
-;       set to print color output to the output log
-;    html : in, optional, type=boolean
-;       set to indicate HTML output instead of plain text
-;    xml : in, optional, type=boolean
-;       set to indicate XML output instead of plain text
-;    junit : in, optional, type=boolean
-;       set to indicate XML output in JUnit format instead of plain text
-;    gui : in, optional, type=boolean
-;       set to bring up an interactive GUI to run the tests
-;    npass : out, optional, type=long
-;       number of tests that passed
-;    nfail : out, optional, type=long
-;       number of tests that failed
-;    nskip : out, optional, type=long
-;       number of tests that were skipped
-;    ntests : out, optional, type=long
-;       number of tests
-;    failures_only : in, optional, type=boolean
-;       report only failed tests
-;    version : in, optional, type=boolean
-;       set to report version and exit
+;   color : in, optional, type=boolean
+;     set to print color output to the output log
+;   filename : in, optional, type=string
+;     name of file to send output to; if not present sends output to the
+;     output log
+;   html : in, optional, type=boolean
+;     set to indicate HTML output instead of plain text
+;   xml : in, optional, type=boolean
+;     set to indicate XML output instead of plain text
+;   junit : in, optional, type=boolean
+;     set to indicate XML output in JUnit format instead of plain text
+;   gui : in, optional, type=boolean
+;     set to bring up an interactive GUI to run the tests
+;   npass : out, optional, type=long
+;     number of tests that passed
+;   nfail : out, optional, type=long
+;     number of tests that failed
+;   nskip : out, optional, type=long
+;     number of tests that were skipped
+;   ntests : out, optional, type=long
+;     number of tests
+;   failures_only : in, optional, type=boolean
+;     report only failed tests
+;   version : in, optional, type=boolean
+;     set to report version and exit
 ;-
-pro mgunit, tests, filename=filename, html=html, xml=xml, gui=gui, junit=junit, $
-            color=color, $
+pro mgunit, tests, color=color, $
+            filename=filename, html=html, xml=xml, junit=junit, gui=gui, $
             npass=npass, nfail=nfail, nskip=nskip, ntests=ntests, $
             failures_only=failuresOnly, version=version
   compile_opt strictarr
@@ -77,7 +83,7 @@ pro mgunit, tests, filename=filename, html=html, xml=xml, gui=gui, junit=junit, 
     return
   endif
 
-  case 1 of 
+  case 1 of
     keyword_set(gui): runnerName = 'MGutGuiRunner'
     keyword_set(html): runnerName = 'MGutHtmlRunner'
     keyword_set(xml): runnerName = 'MGutXmlRunner'
@@ -89,7 +95,7 @@ pro mgunit, tests, filename=filename, html=html, xml=xml, gui=gui, junit=junit, 
 
   if (n_elements(tests) gt 0) then begin
     testRunner = obj_new('MGutCompoundRunner')
-    
+
     npass = 0L
     nfail = 0L
 

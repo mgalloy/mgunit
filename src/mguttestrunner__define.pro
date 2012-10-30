@@ -1,9 +1,9 @@
 ; docformat = 'rst'
 
 ;+
-; Results for tests, test cases, and test suites are reported to the test 
-; runner. Each subclass of MGutTestRunner displays them in some way. 
-; MGutTestRunner itself is abstract and shouldn't be instantiated.  
+; Results for tests, test cases, and test suites are reported to the test
+; runner. Each subclass of MGutTestRunner displays them in some way.
+; MGutTestRunner itself is abstract and shouldn't be instantiated.
 ;
 ; :Private:
 ;-
@@ -36,13 +36,13 @@ end
 ;
 ; :Keywords:
 ;    npass : in, required, type=integer
-;       number of passing tests contained in the hierarchy below the test 
+;       number of passing tests contained in the hierarchy below the test
 ;       suite
-;    nfail : in, required, type=integer 
-;       number of failing tests contained in the hierarchy below the test 
+;    nfail : in, required, type=integer
+;       number of failing tests contained in the hierarchy below the test
 ;       suite
 ;    nskip : in, required, type=integer
-;       number of skipped tests contained in the hierarchy below the test 
+;       number of skipped tests contained in the hierarchy below the test
 ;       suite
 ;    level : in, required, type=integer
 ;       level of test suite
@@ -83,7 +83,7 @@ end
 ;       number of failing tests
 ;    nskip : in, required, type=integer
 ;       number of skipped tests
-;    level : in, required, type=integer 
+;    level : in, required, type=integer
 ;       level of test case
 ;-
 pro mguttestrunner::reportTestCaseResult, npass=npass, nfail=nfail, $
@@ -120,6 +120,8 @@ end
 ; :Keywords:
 ;    passed : in, required, type=boolean
 ;       whether the test passed
+;    output : in, optional, type=string
+;       output from the test run
 ;    time : in, required, type=float
 ;       time for the test to run
 ;    level : in, required, type=integer
@@ -127,7 +129,8 @@ end
 ;    skipped : in, required, type=boolean
 ;       indicates whether the test should be counted in the results
 ;-
-pro mguttestrunner::reportTestResult, msg, passed=passed, time=time, $
+pro mguttestrunner::reportTestResult, msg, passed=passed, $
+                                      output=output, time=time, $
                                       skipped=skipped, level=level
   compile_opt strictarr
 
@@ -148,7 +151,7 @@ end
 ;+
 ; Initialize the test runner.
 ;
-; :Returns: 
+; :Returns:
 ;    1 for success, 0 for failure
 ;-
 function mguttestrunner::init, parent=parent, test_suite=testSuite
@@ -156,7 +159,7 @@ function mguttestrunner::init, parent=parent, test_suite=testSuite
 
   self.suite = obj_valid(testsuite) ? testsuite : obj_new()
   self.parent = obj_valid(parent) ? parent : obj_new()
-  
+
   return, 1B
 end
 
@@ -175,6 +178,6 @@ pro mguttestrunner__define
 
   define = { MGutTestRunner, $
              suite: obj_new(), $
-             parent: obj_new() $ 
+             parent: obj_new() $
            }
 end

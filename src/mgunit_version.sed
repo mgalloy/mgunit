@@ -4,10 +4,10 @@
 ; Returns `mgunit` version. This file is automatically edited by the build
 ; process to edit the contents of the version and revision variables below.
 ;
-; :Returns: 
+; :Returns:
 ;    string
 ;
-; :Keywords: 
+; :Keywords:
 ;    full : in, optional, type=boolean
 ;       set to return git revision as well
 ;-

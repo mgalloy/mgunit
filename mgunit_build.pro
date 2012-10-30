@@ -1,5 +1,5 @@
 ;+
-; Builds the `mgunit` sav file. A typo on line 78 of parse_url.pro (IDL 6.4, 
+; Builds the `mgunit` sav file. A typo on line 78 of parse_url.pro (in IDL 6.4,
 ; 7.0) must be fixed for this build process to work.
 ;-
 
@@ -20,6 +20,7 @@
 .compile mg_ansicode
 .compile mg_src_root
 .compile mg_options__define
+
 
 
 ; compile any system routines that are used in the required code

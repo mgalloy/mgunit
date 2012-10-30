@@ -1,7 +1,7 @@
 ; docformat = 'rst'
 
 ;+
-; Results for tests, test cases, and test suites are reported to the test 
+; Results for tests, test cases, and test suites are reported to the test
 ; runner. The `MGutXMLRunner` displays the results in the output XML file.
 ;
 ; :Private:
@@ -15,7 +15,7 @@
 ;       name of test suite
 ;
 ; :Keywords:
-;    ntestcases : in, required, type=integer 
+;    ntestcases : in, required, type=integer
 ;       number of test suites/cases contained by the test suite
 ;    ntests : in, required, type=integer
 ;       number of tests contained in the hierarchy below this test suite
@@ -39,13 +39,13 @@ end
 ;
 ; :Keywords:
 ;    npass : in, required, type=integer
-;       number of passing tests contained in the hierarchy below the test 
+;       number of passing tests contained in the hierarchy below the test
 ;       suite
-;    nfail : in, required, type=integer 
-;       number of failing tests contained in the hierarchy below the test 
+;    nfail : in, required, type=integer
+;       number of failing tests contained in the hierarchy below the test
 ;       suite
 ;    nskip : in, required, type=integer
-;       number of skipped tests contained in the hierarchy below the test 
+;       number of skipped tests contained in the hierarchy below the test
 ;       suite
 ;    level : in, required, type=integer
 ;       level of test suite
@@ -135,6 +135,8 @@ end
 ; :Keywords:
 ;    passed : in, required, type=boolean
 ;       whether the test passed
+;    output : in, optional, type=string
+;       output from the test run
 ;    skipped : in, required, type=boolean
 ;       indicates whether the test should be counted in the results
 ;    time : in, required, type=float
@@ -142,12 +144,13 @@ end
 ;    level : in, required, type=integer
 ;       level of test case
 ;-
-pro mgutxmlrunner::reportTestResult, msg, passed=passed, skipped=skipped, $
+pro mgutxmlrunner::reportTestResult, msg, passed=passed, $
+                                     output=output, skipped=skipped, $
                                      time=time, level=level
   compile_opt strictarr
-             
+
   indent = level eq 0L ? '' : string(bytarr(2 * level) + 32B)
-  
+
   case 1 of
     keyword_set(skipped): begin
       _msg = string(indent, msg, format='(%"%s    <skipped>%s</skipped>")')
@@ -179,12 +182,12 @@ end
 ;-
 pro mgutxmlrunner::_print, lun, text, _extra=e
   compile_opt strictarr
-  
+
   printf, lun, text, _extra=e
   if (lun gt 0L) then flush, lun
 end
 
-     
+
 ;+
 ; Free resources.
 ;-
@@ -199,12 +202,12 @@ end
 ;+
 ; Initialize the test runner.
 ;
-; :Returns: 
+; :Returns:
 ;    1 for success, 0 for failure
 ; 
-; :Keywords: 
+; :Keywords:
 ;    filename : in, optional, type=string
-;       if present, output is sent that file, otherwise output is sent to 
+;       if present, output is sent that file, otherwise output is sent to
 ;       `stdout`
 ;    color : in, optional, type=boolean
 ;       unused for `MGutXMLRunner`
@@ -221,7 +224,7 @@ function mgutxmlrunner::init, filename=filename, color=color, _extra=e
     dir = file_dirname(filename)
     if (~file_test(dir)) then file_mkdir, dir
   endif
-  
+
   ; setup the LUN for the output
   if (n_elements(filename) gt 0) then begin
     openw, lun, filename, /get_lun
@@ -238,12 +241,12 @@ end
 ; Define member variables.
 ;
 ; :Fields:
-;    lun 
-;       the logical unit number to send output to (-1L by default)
+;    lun
+;       the logical unit number to send output to (`-1L` by default)
 ;-
 pro mgutxmlrunner__define
   compile_opt strictarr
-  
+
   define = { MGutXmlRunner, inherits MGutTestRunner, $
              lun: 0L $
            }

@@ -1,6 +1,6 @@
 `mgunit` is a unit testing framework modeled on other `xUnit testing frameworks <http://en.wikipedia.org/wiki/XUnit>`. The goal is to allow easy creation and reporting of results of tests, while still allowing for many different testing situations. Simple naming conventions replace formal creation of hierarchies and specification of tests. This allows test suites to be created with a minimum of code beyond the actual code of the tests themselves.
 
-The basic structure of `mgunit` is that tests are created by subclassing `MGutTestCase`, tests can be grouped together into suites for convenience by subclassing `MGutTestSuite`, and tests are run my calling `MGUNIT`. The `ASSERT` routine is useful inside a test for making an assertion during the test. The `error_is_pass.pro` batch file is useful to include in a test when the test is supposed to crash. 
+The basic structure of `mgunit` is that tests are created by subclassing `MGutTestCase`, tests can be grouped together into suites for convenience by subclassing `MGutTestSuite`, and tests are run my calling `MGUNIT`. The `ASSERT` routine is useful inside a test for making an assertion during the test. The `error_is_pass.pro` batch file is useful to include in a test when the test is supposed to crash.
 
 See "Using mgunit" in the `docs/` directory for more details about using `mgunit`.
 
