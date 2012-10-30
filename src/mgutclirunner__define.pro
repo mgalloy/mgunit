@@ -1,8 +1,8 @@
 ; docformat = 'rst'
 
 ;+
-; Results for tests, test cases, and test suites are reported to the test 
-; runner. The `MGutCliRunner` displays the results in the output log or in a 
+; Results for tests, test cases, and test suites are reported to the test
+; runner. The `MGutCliRunner` displays the results in the output log or in a
 ; log file.
 ;
 ; :Private:
@@ -34,7 +34,7 @@ pro mgutclirunner::reportTestSuiteStart, testsuite, $
                 indent + '"' + testsuite $
                   + '" test suite starting (' $
                   + strtrim(ntestcases, 2) + ' test suite' $
-                  + (ntestcases eq 1 ? '' : 's') $          
+                  + (ntestcases eq 1 ? '' : 's') $
                   + '/case' $
                   + (ntestcases eq 1 ? '' : 's') $
                   + ', ' $
@@ -151,6 +151,8 @@ end
 ; :Keywords:
 ;    passed : in, required, type=boolean
 ;       whether the test passed
+;    output : in, optional, type=string
+;       output from the test run
 ;    time : in, required, type=float
 ;       time for the test to run
 ;    level : in, required, type=integer
@@ -158,7 +160,8 @@ end
 ;    skipped : in, required, type=boolean
 ;       indicates whether the test should be counted in the results
 ;-
-pro mgutclirunner::reportTestResult, msg, passed=passed, time=time, $
+pro mgutclirunner::reportTestResult, msg, passed=passed, $
+                                     output=output, time=time, $
                                      skipped=skipped, level=level
   compile_opt strictarr
 
@@ -170,6 +173,9 @@ pro mgutclirunner::reportTestResult, msg, passed=passed, time=time, $
     self->_print, self.logLun, 'failed' + (msg eq '' ? '' : ' "' + msg + '"'), /red, format='(A, $)'
   endelse
   
+  if (size(output, /type) eq 7 && output ne '') then begin
+    self->_print, self.logLun, ' [' + output + ']', format='(A, $)'
+  endif
   self->_print, self.logLun, string(time, format='(%" (%f seconds)")')
 end
 

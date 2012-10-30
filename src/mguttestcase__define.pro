@@ -85,8 +85,13 @@ end
 ; :Keywords:
 ;    message : out, optional, type=string
 ;       error message if test failed
+;    has_output : in, optional, type=boolean
+;       set to indicate the called routine has an `OUTPUT` keyword
+;    output : out, optional, type=string
+;       output from the called routine, if any
 ;-
-function mguttestcase::runTest, testname, message=msg
+function mguttestcase::runTest, testname, message=msg, $
+                                has_output=has_output, output=output
   compile_opt strictarr, logical_predicate
 
   catch, error
@@ -98,11 +103,15 @@ function mguttestcase::runTest, testname, message=msg
   endif
 
   !error_state.msg = ''
-  
+
   self.time = systime(/seconds)
-  result = call_method(testname, self)
+  if (has_output) then begin
+    result = call_method(testname, self, output=output)
+  endif else begin
+    result = call_method(testname, self)
+  endelse
   self.time = systime(/seconds) - self.time
-  
+
   if (~result) then msg = !error_state.msg
   return, keyword_set(result)
 end
@@ -196,6 +205,7 @@ pro mguttestcase::display
     if ((*self.passes)[t] eq 0B) then begin
       self.testRunner->reportTestStart, (*self.testnames)[t], level=self.level
       self.testRunner->reportTestResult, (*self.logmsgs)[t], passed=(*self.passes)[t], $
+                                         output=(*self.output)[t], $
                                          skipped=self.skipped, $
                                          time=self.time, level=self.level
     endif
@@ -240,7 +250,9 @@ pro mguttestcase::run
     self->_runSetup, fail=setupFailed
     if (~setupFailed) then begin
       self.skipped = 0B
-      result = self->runTest((*self.testnames)[t], message=msg)
+      result = self->runTest((*self.testnames)[t], message=msg, $
+                             has_output=(*self.have_output)[t], output=output)
+      (*self.output)[t] = size(output, /type) eq 7L ? output : ''
       self->_runTeardown, fail=teardownFailed
     endif
 
@@ -286,7 +298,7 @@ pro mguttestcase::run
     (*self.logmsgs)[t] = logMsg
     (*self.passes)[t] = passed
     if (~self.failuresOnly) then begin
-      self.testRunner->reportTestResult, logMsg, passed=passed, $
+      self.testRunner->reportTestResult, logMsg, passed=passed, output=output, $
                                          skipped=self.skipped, $
                                          time=self.time, level=self.level
     endif
@@ -313,7 +325,7 @@ pro mguttestcase::findTestnames
   ; find tests: any method with name test*
   help, /routines, output=routines
   functionsPos = where(strmatch(routines, 'Compiled Functions:'), count)
-  routines = routines[functionsPos:*]  
+  routines = routines[functionsPos:*]
   result = stregex(routines, '^' + obj_class(self) + '::(test[^ ]*).*', $
                    /extract, /subexpr, /fold_case)
   testnames = reform(result[1, *])
@@ -327,6 +339,15 @@ pro mguttestcase::findTestnames
   ; record results
   self.ntests = ntests
   *self.testnames = strlowcase(testnames)
+  
+  *self.have_output = bytarr(n_elements(testnames))
+  for t = 0L, n_elements(testnames) - 1L do begin
+    params = routine_info(obj_class(self) + '::' + testnames[t], $
+                          /parameters, /functions)
+    if (params.num_kw_args eq 0L) then continue
+    ind = where(params.kw_args eq 'OUTPUT', ncount)
+    (*self.have_output)[t] = ncount gt 0L
+  endfor
 end
 
 
@@ -334,7 +355,8 @@ end
 ; Get properties of the object.
 ;-
 pro mguttestcase::getProperty, npass=npass, nfail=nfail, nskip=nskip, $
-                               ntests=ntests, testnames=testnames
+                               ntests=ntests, testnames=testnames, $
+                               have_output=have_output
   compile_opt strictarr
   
   npass = self.npass
@@ -342,6 +364,7 @@ pro mguttestcase::getProperty, npass=npass, nfail=nfail, nskip=nskip, $
   nskip = self.nskip
   ntests = self.ntests
   if (arg_present(testnames)) then testnames = *self.testnames
+  if (arg_present(have_output)) then have_output = *self.have_output
 end
 
 
@@ -365,8 +388,8 @@ end
 ; :Private:
 ;
 ; :Params:
-;    level : in, required, type=integer
-;       new level of object
+;   level : in, required, type=integer
+;     new level of object
 ;-
 pro mguttestcase::setLevel, level
   compile_opt strictarr
@@ -381,7 +404,8 @@ end
 pro mguttestcase::cleanup
   compile_opt strictarr
 
-  ptr_free, self.testnames, self.logmsgs, self.passes
+  ptr_free, self.testnames, self.have_output, self.output, $
+            self.logmsgs, self.passes
 end
 
 
@@ -389,13 +413,13 @@ end
 ; Intialize test case.
 ;
 ; :Returns:
-;    1 for succcess, 0 for failure
+;   1 for succcess, 0 for failure
 ; 
 ; :Keywords:
-;    test_runner : in, required, type=object
-;       subclass of `MGutTestRunner`
-;    failures_only : in, optional, type=boolean
-;       set to report only failed tests
+;   test_runner : in, required, type=object
+;     subclass of `MGutTestRunner`
+;   failures_only : in, optional, type=boolean
+;     set to report only failed tests
 ;-
 function mguttestcase::init, test_runner=testRunner, failures_only=failuresOnly
   compile_opt strictarr
@@ -404,11 +428,14 @@ function mguttestcase::init, test_runner=testRunner, failures_only=failuresOnly
   self.failuresOnly = keyword_set(failuresOnly)
 
   self.testnames = ptr_new(/allocate_heap)
+  self.have_output = ptr_new(/allocate_heap)
+  self.output = ptr_new(/allocate_heap)
   self.logmsgs = ptr_new(/allocate_heap)
   self.passes = ptr_new(/allocate_heap)
 
   self->findTestnames
 
+  *self.output = strarr(n_elements(*self.testnames))
   *self.logmsgs = strarr(n_elements(*self.testnames))
   *self.passes = bytarr(n_elements(*self.testnames))
 
@@ -422,26 +449,29 @@ end
 ; Define member variables.
 ;
 ; :Fields:
-;    testRunner
-;       subclass of `MGtestRunner`
-;    testnames
-;       pointer to string array of method names that start with "test"
-;    logmsgs
-;       pointer to string array of log message for each test
-;    passes
-;       point to byte array of pass/fail status for each test
-;    level
-;       number of layers down from the top-containing suite
-;    ntests
-;       total number of tests
-;    npass
-;       number of passing tests
-;    nfail
-;       number of failing tests
-;    time
-;       time for the current test to run
-;    failuresOnly
-;       flag to indicate only failed tests should be reported
+;   testRunner
+;     subclass of `MGtestRunner`
+;   testnames
+;     pointer to string array of method names that start with "test"
+;   have_output
+;     boolean array indicating whether corresponding test method has a OUTPUT
+;     keyword
+;   logmsgs
+;     pointer to string array of log message for each test
+;   passes
+;     point to byte array of pass/fail status for each test
+;   level
+;     number of layers down from the top-containing suite
+;   ntests
+;     total number of tests
+;   npass
+;     number of passing tests
+;   nfail
+;     number of failing tests
+;   time
+;     time for the current test to run
+;   failuresOnly
+;     flag to indicate only failed tests should be reported
 ;-
 pro mguttestcase__define
   compile_opt strictarr
@@ -449,6 +479,8 @@ pro mguttestcase__define
   define = { MGutTestCase, $
              testRunner: obj_new(), $
              testnames: ptr_new(), $
+             have_output: ptr_new(), $
+             output: ptr_new(), $
              logmsgs: ptr_new(), $
              passes: ptr_new(), $
              level: 0L, $

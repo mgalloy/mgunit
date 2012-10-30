@@ -1,11 +1,11 @@
 ; docformat = 'rst'
 
 ;+
-; Results for tests, test cases, and test suites are reported to the test 
-; runner. The `MGutJUnitRunner` displays the results in the output XML file. 
+; Results for tests, test cases, and test suites are reported to the test
+; runner. The `MGutJUnitRunner` displays the results in the output XML file.
 ; For example, a test that normally runs like::
 ;
-;    IDL> mgunit, 'gpuradon_ut'        
+;    IDL> mgunit, 'gpuradon_ut'
 ;    "All tests" test suite starting (1 test suite/case, 2 tests)
 ;       "gpuradon_ut" test case starting (2 tests)
 ;          test_basic_backprojection: passed (0.158287 seconds)
@@ -15,7 +15,7 @@
 ;
 ; With `MGutJUnitRunner`, it would produce output like::
 ;
-;    IDL> mgunit, 'gpuradon_ut', /junit        
+;    IDL> mgunit, 'gpuradon_ut', /junit
 ;    <testsuites name="All tests">
 ;      <testsuite name="gpuradon_ut">
 ;        <testcase name="test_basic_backprojection">
@@ -37,7 +37,7 @@
 ;       name of test suite
 ;
 ; :Keywords:
-;    ntestcases : in, required, type=integer 
+;    ntestcases : in, required, type=integer
 ;       number of test suites/cases contained by the test suite
 ;    ntests : in, required, type=integer
 ;       number of tests contained in the hierarchy below this test suite
@@ -45,9 +45,9 @@
 ;       level of test suite
 ;-
 pro mgutjunitrunner::reportTestSuiteStart, testsuite, $
-                                         ntestcases=ntestcases, $
-                                         ntests=ntests, $
-                                         level=level
+                                           ntestcases=ntestcases, $
+                                           ntests=ntests, $
+                                           level=level
   compile_opt strictarr
   
   indent = level eq 0L ? '' : string(bytarr(2 * level) + 32B)
@@ -62,13 +62,13 @@ end
 ;
 ; :Keywords:
 ;    npass : in, required, type=integer
-;       number of passing tests contained in the hierarchy below the test 
+;       number of passing tests contained in the hierarchy below the test
 ;       suite
-;    nfail : in, required, type=integer 
-;       number of failing tests contained in the hierarchy below the test 
+;    nfail : in, required, type=integer
+;       number of failing tests contained in the hierarchy below the test
 ;       suite
 ;    nskip : in, required, type=integer
-;       number of skipped tests contained in the hierarchy below the test 
+;       number of skipped tests contained in the hierarchy below the test
 ;       suite
 ;    level : in, required, type=integer
 ;       level of test suite
@@ -159,6 +159,8 @@ end
 ; :Keywords:
 ;    passed : in, required, type=boolean
 ;       whether the test passed
+;    output : in, optional, type=string
+;       output from the test run
 ;    time : in, required, type=float
 ;       time for the test to run
 ;    level : in, required, type=integer
@@ -166,7 +168,8 @@ end
 ;    skipped : in, required, type=boolean
 ;       indicates whether the test should be counted in the results
 ;-
-pro mgutjunitrunner::reportTestResult, msg, passed=passed, time=time, $
+pro mgutjunitrunner::reportTestResult, msg, passed=passed, $
+                                       output=output, time=time, $
                                        skipped=skipped, level=level
   compile_opt strictarr
 

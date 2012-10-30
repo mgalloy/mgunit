@@ -173,6 +173,8 @@ end
 ; :Keywords:
 ;    passed : in, required, type=boolean
 ;       whether the test passed
+;    output : in, optional, type=string
+;       output from the test run
 ;    time : in, required, type=float
 ;       time for the test to run
 ;    level : in, required, type=integer
@@ -180,7 +182,8 @@ end
 ;    skipped : in, required, type=boolean
 ;       indicates whether the test should be counted in the results
 ;-
-pro mgutguirunner::reportTestResult, msg, passed=passed, time=time, $
+pro mgutguirunner::reportTestResult, msg, passed=passed, $
+                                     output=output, time=time, $
                                      skipped=skipped, level=level
   compile_opt strictarr
 
@@ -191,7 +194,10 @@ pro mgutguirunner::reportTestResult, msg, passed=passed, time=time, $
   endif else begin
     self->_print, 'failed' + (msg eq '' ? '' : ' "' + msg + '"'), /continued
   endelse
-  
+
+  if (size(output, /type) eq 7 && output ne '') then begin
+    self->_print, self.logLun, ' [' + output + ']', /continued
+  endif
   self->_print, string(time, format='(%" (%f seconds)")')
 end
 

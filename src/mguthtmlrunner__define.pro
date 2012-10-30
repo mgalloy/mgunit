@@ -1,7 +1,7 @@
 ; docformat = 'rst'
 
 ;+
-; Results for tests, test cases, and test suites are reported to the test 
+; Results for tests, test cases, and test suites are reported to the test
 ; runner. The `MGutHTMLRunner` displays the results in the output HTML file.
 ;
 ; :Private:
@@ -15,7 +15,7 @@
 ;       name of test suite
 ;
 ; :Keywords:
-;    ntestcases : in, required, type=integer 
+;    ntestcases : in, required, type=integer
 ;       number of test suites/cases contained by the test suite
 ;    ntests : in, required, type=integer
 ;       number of tests contained in the hierarchy below this test suite
@@ -142,6 +142,8 @@ end
 ; :Keywords:
 ;    passed : in, required, type=boolean
 ;       whether the test passed
+;    output : in, optional, type=string
+;       output from the test run
 ;    time : in, required, type=float
 ;       time for the test to run
 ;    level : in, required, type=integer
@@ -149,7 +151,8 @@ end
 ;    skipped : in, required, type=boolean
 ;       indicates whether the test should be counted in the results
 ;-
-pro mguthtmlrunner::reportTestResult, msg, passed=passed, time=time, $
+pro mguthtmlrunner::reportTestResult, msg, passed=passed, $
+                                      output=output, time=time, $
                                       skipped=skipped, level=level
   compile_opt strictarr
 
@@ -160,8 +163,9 @@ pro mguthtmlrunner::reportTestResult, msg, passed=passed, time=time, $
   s = string(result, $
              result, $
              (passed && ~skipped) ? '': (msg eq '' ? '' : ' "' + msg + '"'), $
+             (size(output, /type) eq 7 && output ne '') ? ('[' + output + ']') : '', $
              time, $
-             format='(%"<span class=\"%s\">%s%s</span> <span class=\"time\">%f seconds</span></li>")')
+             format='(%"<span class=\"%s\">%s%s</span> %s <span class=\"time\">%f seconds</span></li>")')
 
   self->_print, self.lun, s
 end

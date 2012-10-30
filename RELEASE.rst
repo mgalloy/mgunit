@@ -6,11 +6,14 @@ Release notes
 mgunit 1.3
 ----------
 
+* Added optional `OUTPUT` keyword to tests which, if present and set during the
+  the test, is echoed to the output.
+
 * Added utilities to help test GUI applications.
 
 * Updated "Using mgunit" documentation.
 
-* Adding error_is_skip.pro batch file with optional variable MGUNIT_SKIP_MSG 
+* Adding error_is_skip.pro batch file with optional variable MGUNIT_SKIP_MSG
   which can be set prior to including error_is_skip.pro to a message that will
   be used if an error causes the skip.
 
@@ -35,7 +38,7 @@ Released 22 February 2010
 * Added an extra argument to ASSERT which can be inserted into the
   message via C-style format codes.
 
-* Added XML and JUnit output formats (and corresponding XML and JUNIT keywords 
+* Added XML and JUnit output formats (and corresponding XML and JUNIT keywords
   to MGUNIT to turn them on).
   
 * Added ability for a test to determine if it should count in the

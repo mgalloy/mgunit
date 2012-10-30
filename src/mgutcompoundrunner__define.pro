@@ -1,7 +1,7 @@
 ; docformat = 'rst'
 
 ;+
-; Results for tests, test cases, and test suites are reported to the test 
+; Results for tests, test cases, and test suites are reported to the test
 ; runner. The `MGutCompoundRunner` allows results to be sent to multiple
 ; test runners, e.g., to the display and to a file.
 ;
@@ -16,7 +16,7 @@
 ;       name of test suite
 ;
 ; :Keywords:
-;    ntestcases : in, required, type=integer 
+;    ntestcases : in, required, type=integer
 ;       number of test suites/cases contained by the test suite
 ;    ntests : in, required, type=integer
 ;       number of tests contained in the hierarchy below this test suite
@@ -42,13 +42,13 @@ end
 ;
 ; :Keywords:
 ;    npass : in, required, type=integer
-;       number of passing tests contained in the hierarchy below the test 
+;       number of passing tests contained in the hierarchy below the test
 ;       suite
-;    nfail : in, required, type=integer 
-;       number of failing tests contained in the hierarchy below the test 
+;    nfail : in, required, type=integer
+;       number of failing tests contained in the hierarchy below the test
 ;       suite
 ;    nskip : in, required, type=integer
-;       number of skipped tests contained in the hierarchy below the test 
+;       number of skipped tests contained in the hierarchy below the test
 ;       suite
 ;    level : in, required, type=integer
 ;       level of test suite
@@ -149,13 +149,15 @@ end
 ;    skipped : in, required, type=boolean
 ;       indicates whether the test should be counted in the results
 ;-
-pro mgutcompoundrunner::reportTestResult, msg, passed=passed, time=time, $
+pro mgutcompoundrunner::reportTestResult, msg, passed=passed, $
+                                          output=output, time=time, $
                                           skipped=skipped, level=level
   compile_opt strictarr
 
   for i = 0L, self->count() - 1L do begin
     r = self->get(position=i)
-    r->reportTestResult, msg, passed=passed, time=time, skipped=skipped, level=level
+    r->reportTestResult, msg, passed=passed, output=output, time=time, $
+                         skipped=skipped, level=level
   endfor
 end
 
