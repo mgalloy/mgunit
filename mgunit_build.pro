@@ -3,6 +3,7 @@
 ; 7.0) must be fixed for this build process to work.
 ;-
 
+
 ; clear any other compilations
 .reset
 
@@ -22,9 +23,8 @@
 .compile mg_options__define
 
 
-
 ; compile any system routines that are used in the required code
-resolve_all
+resolve_all, /quiet
 
 ; create the sav file
 save, filename='mgunit.sav', /routines, $
