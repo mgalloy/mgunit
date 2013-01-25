@@ -6,7 +6,7 @@ Release notes
 mgunit 1.3
 ----------
 
-* Added optional `OUTPUT` keyword to tests which, if present and set during the
+* Added optional OUTPUT keyword to tests which, if present and set during the
   the test, is echoed to the output.
 
 * Added utilities to help test GUI applications.
