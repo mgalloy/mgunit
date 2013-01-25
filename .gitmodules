@@ -1,9 +1,9 @@
 [submodule "lib"]
 	path = lib
-	url = https://github.com/mgalloy/mglib.git
+	url = git@github.com:mgalloy/mglib.git
 [submodule "mgcmake"]
 	path = mgcmake
-	url = https://github.com/mgalloy/mgcmake.git
+	url = git@github.com:mgalloy/mgcmake.git
 [submodule "idldoc"]
 	path = idldoc
-	url = https://github.com/mgalloy/idldoc.git
+	url = git@github.com:mgalloy/idldoc.git
