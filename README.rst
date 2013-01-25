@@ -17,4 +17,8 @@ subclassing ``MGutTestSuite``, and tests are run my calling ``MGUNIT``. Various
 convenience routines are included, such as the ``ASSERT`` routine which is
 useful for making an assertion during a test.
 
-See "Using mgunit" in the ``docs/`` directory for more details about using `mgunit`.
+See "Using mgunit" in the ``docs/`` directory for more details about using
+`mgunit`.
+
+See the `Releases <https://github.com/mgalloy/mgunit/wiki/Releases>`_ page in
+the wiki for downloads.
