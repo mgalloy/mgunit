@@ -1,0 +1,6 @@
+#!/bin/sh
+
+VERSION=1.3.0
+PREFIX=$HOME/projects/mgunit-$VERSION
+
+cmake -DCMAKE_INSTALL_PREFIX=$PREFIX .
