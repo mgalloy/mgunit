@@ -5,6 +5,7 @@ Release notes
 
 mgunit 1.3
 ----------
+Released 12 February 2013
 
 * Added optional OUTPUT keyword to tests which, if present and set during the
   the test, is echoed to the output.
