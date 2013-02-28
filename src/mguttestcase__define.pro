@@ -26,16 +26,18 @@
 ;       end
 ;
 ; :Properties:
-;    npass : type=integer
-;       number of passing tests
-;    nfail : type=integer
-;       number of failing tests
-;    nskip : type=integer
-;       number of skipped tests
-;    ntests : type=integer
-;       number of tests
-;    testnames : type=strarr
-;       array of method names which begin with "test"
+;   npass : type=integer
+;     number of passing tests
+;   nfail : type=integer
+;     number of failing tests
+;   nskip : type=integer
+;     number of skipped tests
+;   ntests : type=integer
+;     number of tests
+;   testnames : type=strarr
+;     array of method names which begin with "test"
+;   math_errors : type=integer
+;     bitmask of `CHECK_MATH` return values
 ;-
 
 
@@ -76,22 +78,25 @@ end
 ; :Private:
 ;
 ; :Returns:
-;    boolean
+;   boolean
 ;
 ; :Params:
-;    testname : in, required, type=string
-;       name of method
+;   testname : in, required, type=string
+;     name of method
 ;
 ; :Keywords:
-;    message : out, optional, type=string
-;       error message if test failed
-;    has_output : in, optional, type=boolean
-;       set to indicate the called routine has an `OUTPUT` keyword
-;    output : out, optional, type=string
-;       output from the called routine, if any
+;   message : out, optional, type=string
+;     error message if test failed
+;   has_output : in, optional, type=boolean
+;     set to indicate the called routine has an `OUTPUT` keyword
+;   output : out, optional, type=string
+;     output from the called routine, if any
+;   math_errors : out, optional, type=integer
+;     bitmask of `CHECK_MATH` return values
 ;-
 function mguttestcase::runTest, testname, message=msg, $
-                                has_output=has_output, output=output
+                                has_output=has_output, output=output, $
+                                math_errors=math_errors
   compile_opt strictarr, logical_predicate
 
   catch, error
@@ -104,6 +109,10 @@ function mguttestcase::runTest, testname, message=msg, $
 
   !error_state.msg = ''
 
+  old_except = !except
+  !except = 0
+  math_errors = check_math()
+
   self.time = systime(/seconds)
   if (has_output) then begin
     result = call_method(testname, self, output=output)
@@ -111,6 +120,9 @@ function mguttestcase::runTest, testname, message=msg, $
     result = call_method(testname, self)
   endelse
   self.time = systime(/seconds) - self.time
+
+  math_errors = check_math()
+  !except = old_except
 
   if (~result) then msg = !error_state.msg
   return, keyword_set(result)
@@ -204,10 +216,12 @@ pro mguttestcase::display
   for t = 0L, self.ntests - 1L do begin
     if ((*self.passes)[t] eq 0B) then begin
       self.testRunner->reportTestStart, (*self.testnames)[t], level=self.level
-      self.testRunner->reportTestResult, (*self.logmsgs)[t], passed=(*self.passes)[t], $
+      self.testRunner->reportTestResult, (*self.logmsgs)[t], $
+                                         passed=(*self.passes)[t], $
                                          output=(*self.output)[t], $
                                          skipped=self.skipped, $
-                                         time=self.time, level=self.level
+                                         time=self.time, level=self.level, $
+                                         math_errors=self.math_errors
     endif
   endfor
 
@@ -251,7 +265,8 @@ pro mguttestcase::run
     if (~setupFailed) then begin
       self.skipped = 0B
       result = self->runTest((*self.testnames)[t], message=msg, $
-                             has_output=(*self.have_output)[t], output=output)
+                             has_output=(*self.have_output)[t], output=output, $
+                             math_errors=math_errors)
       (*self.output)[t] = size(output, /type) eq 7L ? output : ''
       self->_runTeardown, fail=teardownFailed
     endif
@@ -300,7 +315,8 @@ pro mguttestcase::run
     if (~self.failuresOnly) then begin
       self.testRunner->reportTestResult, logMsg, passed=passed, output=output, $
                                          skipped=self.skipped, $
-                                         time=self.time, level=self.level
+                                         time=self.time, level=self.level, $
+                                         math_errors=self.math_errors
     endif
   endfor
 
@@ -356,13 +372,15 @@ end
 ;-
 pro mguttestcase::getProperty, npass=npass, nfail=nfail, nskip=nskip, $
                                ntests=ntests, testnames=testnames, $
-                               have_output=have_output
+                               have_output=have_output, math_errors=math_errors
   compile_opt strictarr
-  
+
   npass = self.npass
   nfail = self.nfail
   nskip = self.nskip
   ntests = self.ntests
+  math_errors = self.math_errors
+
   if (arg_present(testnames)) then testnames = *self.testnames
   if (arg_present(have_output)) then have_output = *self.have_output
 end
@@ -481,6 +499,7 @@ pro mguttestcase__define
              testnames: ptr_new(), $
              have_output: ptr_new(), $
              output: ptr_new(), $
+             math_errors: 0L, $
              logmsgs: ptr_new(), $
              passes: ptr_new(), $
              level: 0L, $

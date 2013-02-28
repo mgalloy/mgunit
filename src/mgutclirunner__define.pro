@@ -145,24 +145,27 @@ end
 ; Report the result of a single test.
 ; 
 ; :Params:
-;    msg : in, required, type=string
-;       message to display when test fails
+;   msg : in, required, type=string
+;     message to display when test fails
 ; 
 ; :Keywords:
-;    passed : in, required, type=boolean
-;       whether the test passed
-;    output : in, optional, type=string
-;       output from the test run
-;    time : in, required, type=float
-;       time for the test to run
-;    level : in, required, type=integer
-;       level of test case
-;    skipped : in, required, type=boolean
-;       indicates whether the test should be counted in the results
+;   passed : in, required, type=boolean
+;     whether the test passed
+;   output : in, optional, type=string
+;     output from the test run
+;   time : in, required, type=float
+;     time for the test to run
+;   level : in, required, type=integer
+;     level of test case
+;   skipped : in, required, type=boolean
+;     indicates whether the test should be counted in the results
+;   math_errors : out, optional, type=integer
+;     bitmask of `CHECK_MATH` return values
 ;-
 pro mgutclirunner::reportTestResult, msg, passed=passed, $
                                      output=output, time=time, $
-                                     skipped=skipped, level=level
+                                     skipped=skipped, level=level, $
+                                     math_errors=math_errors
   compile_opt strictarr
 
   if (skipped) then begin
@@ -172,7 +175,11 @@ pro mgutclirunner::reportTestResult, msg, passed=passed, $
   endif else begin
     self->_print, self.logLun, 'failed' + (msg eq '' ? '' : ' "' + msg + '"'), /red, format='(A, $)'
   endelse
-  
+
+  if (math_errors gt 0L) then begin
+    self->_print, self.logLun, math_errors, format='(%" (Math errors: %d) ", $)'
+  endif
+
   if (size(output, /type) eq 7 && output ne '') then begin
     self->_print, self.logLun, ' [' + output + ']', format='(A, $)'
   endif

@@ -136,28 +136,31 @@ end
 ; Report the result of a single test.
 ; 
 ; :Params:
-;    msg : in, required, type=string
-;       message to display when test fails
+;   msg : in, required, type=string
+;     message to display when test fails
 ;
 ; :Keywords:
-;    passed : in, required, type=boolean
-;       whether the test passed
-;    time : in, required, type=float
-;       time for the test to run
-;    level : in, required, type=integer
-;       level of test case
-;    skipped : in, required, type=boolean
-;       indicates whether the test should be counted in the results
+;   passed : in, required, type=boolean
+;     whether the test passed
+;   time : in, required, type=float
+;     time for the test to run
+;   level : in, required, type=integer
+;     level of test case
+;   skipped : in, required, type=boolean
+;     indicates whether the test should be counted in the results
+;   math_errors : out, optional, type=integer
+;     bitmask of `CHECK_MATH` return values
 ;-
 pro mgutcompoundrunner::reportTestResult, msg, passed=passed, $
                                           output=output, time=time, $
-                                          skipped=skipped, level=level
+                                          skipped=skipped, level=level, $
+                                          math_errors=math_errors
   compile_opt strictarr
 
   for i = 0L, self->count() - 1L do begin
     r = self->get(position=i)
     r->reportTestResult, msg, passed=passed, output=output, time=time, $
-                         skipped=skipped, level=level
+                         skipped=skipped, level=level, math_errors=math_errors
   endfor
 end
 

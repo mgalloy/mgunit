@@ -129,24 +129,27 @@ end
 ; Report the result of a single test.
 ; 
 ; :Params:
-;    msg : in, required, type=string
-;       message to display when test fails
+;   msg : in, required, type=string
+;     message to display when test fails
 ;
 ; :Keywords:
-;    passed : in, required, type=boolean
-;       whether the test passed
-;    output : in, optional, type=string
-;       output from the test run
-;    skipped : in, required, type=boolean
-;       indicates whether the test should be counted in the results
-;    time : in, required, type=float
-;       time for the test to run
-;    level : in, required, type=integer
-;       level of test case
+;   passed : in, required, type=boolean
+;     whether the test passed
+;   output : in, optional, type=string
+;     output from the test run
+;   skipped : in, required, type=boolean
+;     indicates whether the test should be counted in the results
+;   time : in, required, type=float
+;     time for the test to run
+;   level : in, required, type=integer
+;     level of test case
+;   math_errors : out, optional, type=integer
+;     bitmask of `CHECK_MATH` return values
 ;-
 pro mgutxmlrunner::reportTestResult, msg, passed=passed, $
                                      output=output, skipped=skipped, $
-                                     time=time, level=level
+                                     time=time, level=level, $
+                                     math_errors=math_errors
   compile_opt strictarr
 
   indent = level eq 0L ? '' : string(bytarr(2 * level) + 32B)
