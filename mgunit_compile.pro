@@ -8,7 +8,7 @@
 .compile mgunit
 .compile mguttestrunner__define
 .compile mgutcompoundrunner__define.pro
+.compile mg_math_message
 .compile mg_ansicode
 .compile mg_src_root
 .compile mg_options__define
-

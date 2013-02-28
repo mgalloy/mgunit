@@ -91,12 +91,9 @@ end
 ;     set to indicate the called routine has an `OUTPUT` keyword
 ;   output : out, optional, type=string
 ;     output from the called routine, if any
-;   math_errors : out, optional, type=integer
-;     bitmask of `CHECK_MATH` return values
 ;-
 function mguttestcase::runTest, testname, message=msg, $
-                                has_output=has_output, output=output, $
-                                math_errors=math_errors
+                                has_output=has_output, output=output
   compile_opt strictarr, logical_predicate
 
   catch, error
@@ -121,7 +118,7 @@ function mguttestcase::runTest, testname, message=msg, $
   endelse
   self.time = systime(/seconds) - self.time
 
-  math_errors = check_math()
+  self.math_errors = check_math()
   !except = old_except
 
   if (~result) then msg = !error_state.msg
@@ -265,8 +262,7 @@ pro mguttestcase::run
     if (~setupFailed) then begin
       self.skipped = 0B
       result = self->runTest((*self.testnames)[t], message=msg, $
-                             has_output=(*self.have_output)[t], output=output, $
-                             math_errors=math_errors)
+                             has_output=(*self.have_output)[t], output=output)
       (*self.output)[t] = size(output, /type) eq 7L ? output : ''
       self->_runTeardown, fail=teardownFailed
     endif

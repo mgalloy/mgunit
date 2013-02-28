@@ -169,15 +169,27 @@ pro mgutclirunner::reportTestResult, msg, passed=passed, $
   compile_opt strictarr
 
   if (skipped) then begin
-    self->_print, self.logLun, 'skipped' + (msg eq '' ? '' : ' "' + msg + '"'), /cyan, format='(A, $)'
+    self->_print, self.logLun, $
+                  'skipped' + (msg eq '' ? '' : ' "' + msg + '"'), $
+                  /cyan, $
+                  format='(A, $)'
   endif else if (passed) then begin
-    self->_print, self.logLun, 'passed', /green, format='(A, $)'
+    self->_print, self.logLun, $
+                  'passed', $
+                  /green, $
+                  format='(A, $)'
   endif else begin
-    self->_print, self.logLun, 'failed' + (msg eq '' ? '' : ' "' + msg + '"'), /red, format='(A, $)'
+    self->_print, self.logLun, $
+                  'failed' + (msg eq '' ? '' : ' "' + msg + '"'), $
+                  /red, $
+                  format='(A, $)'
   endelse
 
   if (math_errors gt 0L) then begin
-    self->_print, self.logLun, math_errors, format='(%" (Math errors: %d) ", $)'
+    self->_print, self.logLun, $
+                  ' (' + mg_math_message(math_errors) + ') ', $
+                  /yellow, $
+                  format='(A, $)'
   endif
 
   if (size(output, /type) eq 7 && output ne '') then begin
