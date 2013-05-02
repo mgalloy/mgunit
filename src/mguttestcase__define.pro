@@ -346,14 +346,14 @@ pro mguttestcase::findTestnames
   ind = where(testnames ne '', ntests)
   if (ntests gt 0) then begin
     testnames = testnames[ind]
-  endif
+  endif else testnames = ''
 
   ; record results
   self.ntests = ntests
   *self.testnames = strlowcase(testnames)
   
   *self.have_output = bytarr(n_elements(testnames))
-  for t = 0L, n_elements(testnames) - 1L do begin
+  for t = 0L, ntests - 1L do begin
     params = routine_info(obj_class(self) + '::' + testnames[t], $
                           /parameters, /functions)
     if (params.num_kw_args eq 0L) then continue
