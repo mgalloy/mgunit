@@ -6,6 +6,8 @@ Release notes
 mgunit 1.4
 ----------
 
+* Fix for test cases with no valid tests.
+
 
 mgunit 1.3
 ----------
