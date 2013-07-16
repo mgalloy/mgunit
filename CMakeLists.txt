@@ -35,14 +35,14 @@ file(GLOB_RECURSE IDLDOC_FILES "src/*.idldoc")
 
 add_custom_command(
   OUTPUT api-docs/index.html
-  COMMAND ${Idl_EXECUTABLE} -quiet -IDL_QUIET 1 -e mgunit_build_docs
+  COMMAND ${IDL_EXECUTABLE} -quiet -IDL_QUIET 1 -e mgunit_build_docs
   DEPENDS ${PRO_FILES} ${IDLDOC_FILES}
 )
 add_custom_target(doc DEPENDS api-docs/index.html)
 
 add_custom_command(
   OUTPUT api-userdocs/index.html
-  COMMAND ${Idl_EXECUTABLE} -quiet -IDL_QUIET 1 -e mgunit_build_userdocs
+  COMMAND ${IDL_EXECUTABLE} -quiet -IDL_QUIET 1 -e mgunit_build_userdocs
   DEPENDS ${PRO_FILES} ${IDLDOC_FILES}
 )
 add_custom_target(userdoc ALL DEPENDS api-userdocs/index.html)

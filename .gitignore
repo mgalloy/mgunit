@@ -6,3 +6,4 @@ Makefile
 api-docs
 api-userdocs
 mgunit.sav
+TestIDLVersion.c
