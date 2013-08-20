@@ -10,7 +10,7 @@
 
 ;+
 ; Report a test suite has begun.
-; 
+;
 ; :Params:
 ;    testsuite : in, required, type=string
 ;       name of test suite
@@ -143,11 +143,11 @@ end
 
 ;+
 ; Report the result of a single test.
-; 
+;
 ; :Params:
 ;   msg : in, required, type=string
 ;     message to display when test fails
-; 
+;
 ; :Keywords:
 ;   passed : in, required, type=boolean
 ;     whether the test passed
@@ -185,7 +185,7 @@ pro mgutclirunner::reportTestResult, msg, passed=passed, $
                   format='(A, $)'
   endelse
 
-  if (math_errors gt 0L) then begin
+  if (n_elements(math_errors) gt 0L) then begin
     self->_print, self.logLun, $
                   ' (' + mg_math_message(math_errors) + ') ', $
                   /yellow, $
