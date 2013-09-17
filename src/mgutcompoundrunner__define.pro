@@ -10,7 +10,7 @@
 
 ;+
 ; Report a test suite has begun.
-; 
+;
 ; :Params:
 ;    testsuite : in, required, type=string
 ;       name of test suite
@@ -66,7 +66,7 @@ end
 
 ;+
 ; Report a test case has begun.
-; 
+;
 ; :Params:
 ;    testcase : in, required, type=string
 ;       name of test case
@@ -113,7 +113,7 @@ end
 
 ;+
 ; Report the start of single test.
-; 
+;
 ; :Params:
 ;    testname : in, required, type=string
 ;       name of test
@@ -134,7 +134,7 @@ end
 
 ;+
 ; Report the result of a single test.
-; 
+;
 ; :Params:
 ;   msg : in, required, type=string
 ;     message to display when test fails
@@ -179,12 +179,12 @@ end
 ;+
 ; Initialize the test runner.
 ;
-; :Returns: 
+; :Returns:
 ;    1 for success, 0 for failure
-; 
-; :Keywords: 
+;
+; :Keywords:
 ;    filename : in, optional, type=string
-;       if present, output is sent that file, otherwise output is sent to 
+;       if present, output is sent that file, otherwise output is sent to
 ;       `stdout`
 ;-
 function mgutcompoundrunner::init, filename=filename, _extra=e
