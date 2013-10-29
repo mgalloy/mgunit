@@ -130,7 +130,7 @@ end
 ; Run setup method before each test.
 ;
 ; :Private:
-; 
+;
 ; :Keywords:
 ;    fail : out, optional, type=boolean
 ;       set to a named variable to determine if the setup method failed
@@ -263,7 +263,7 @@ pro mguttestcase::run
       self.skipped = 0B
       result = self->runTest((*self.testnames)[t], message=msg, $
                              has_output=(*self.have_output)[t], output=output)
-      (*self.output)[t] = size(output, /type) eq 7L ? output : ''
+      (*self.output)[t] = ((*self.have_output)[t] && size(output, /type) ne 0L) ? strtrim(output, 2) : ''
       self->_runTeardown, fail=teardownFailed
     endif
 
@@ -309,7 +309,7 @@ pro mguttestcase::run
     (*self.logmsgs)[t] = logMsg
     (*self.passes)[t] = passed
     if (~self.failuresOnly) then begin
-      self.testRunner->reportTestResult, logMsg, passed=passed, output=output, $
+      self.testRunner->reportTestResult, logMsg, passed=passed, output=(*self.output)[t], $
                                          skipped=self.skipped, $
                                          time=self.time, level=self.level, $
                                          math_errors=self.math_errors
