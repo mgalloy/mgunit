@@ -187,7 +187,7 @@ pro mgutclirunner::reportTestResult, msg, passed=passed, $
 
   if (n_elements(math_errors) gt 0L && (math_errors gt 0L)) then begin
     self->_print, self.logLun, $
-                  ' (' + mg_math_message(math_errors) + ') ', $
+                  ' (' + mg_math_message(math_errors) + ')', $
                   /yellow, $
                   format='(A, $)'
   endif
