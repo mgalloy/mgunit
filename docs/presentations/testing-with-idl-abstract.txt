@@ -1,0 +1,4 @@
+Unit Testing with IDL
+---------------------
+
+Unit testing is a technique to automate testing individual units of code. It  is generally considered to have many advantages including helping find problems early, providing safety for making changes, and providing examples of code usage. mgunit is an open source unit testing framework for IDL with the goal of making testing IDL code quick and easy. It uses reasonable defaults and simple naming conventions to eliminate boilerplate. We discuss the features of mgunit, provide examples of unit tests, and give a list of best practices for using it in your project.
