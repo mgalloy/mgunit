@@ -52,17 +52,58 @@
 
 \begin{frame}[t, fragile]
   \frametitle{Tests and test cases}
+  \begin{enumerate}
+    \item Create a class for each test case that inherits from {\em MGutTestCase} (put it in your {\tt !path})
+    \item Tests are methods which are:
+      \begin{itemize} 
+        \item functions
+        \item method name starts with ``test''
+      \end{itemize}
+    \item Test results:
+      \begin{itemize}
+        \item pass if returns 1
+        \item fail if returns 0 or crashes ({\tt ASSERT} fails)
+        \item skips if {\tt ASSERT} fails with {\em SKIP} set
+      \end{itemize}
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}[t, fragile]
+  \frametitle{Simple test case}
+
+\begin{lstlisting}[basicstyle=\ttfamily\fontsize{10pt}{10pt}\selectfont]
+function gpurepmat_ut::test_1d
+  ; do testing
+  return, 1
+end
+
+function gpurepmat_ut::test_2d
+  ; do testing
+  return, 1
+end
+
+pro gpurepmat_ut__define
+  define = { gpurepmat_ut, inherits GPUutTestCase }
+end
+\end{lstlisting}
 
 \end{frame}
+
 
 \begin{frame}[t, fragile]
   \frametitle{Running tests}
 
+Run a single test case:
 \begin{lstlisting}
-  IDL> mgunit, 'mglib_uts'
-  IDL> mgunit, 'mgsubs_ut'
-  IDL> mgunit, ['mgsubs_ut', 'strwrap_ut']
-  IDL> mgunit, 'mgsubs_ut.test_derived'
+  IDL> mgunit, 'gpurepmat_ut'
+\end{lstlisting}
+Run a single test:
+\begin{lstlisting}
+  IDL> mgunit, 'gpurepmat_ut.test_2d'
+\end{lstlisting}
+Run a list of test cases:
+\begin{lstlisting}
+  IDL> mgunit, ['gpurepmat_ut', 'gputotal_ut']
 \end{lstlisting}
 
 \end{frame}
@@ -84,15 +125,15 @@ For example:
 
 \end{frame}
 
-\subsection{Advanced}
+\subsection{More features}
 
 \begin{frame}[t, fragile]
-  \frametitle{Advanced}
-  \begin{enumerate}
-    \item test suites
-    \item setup/teardown
-    \item test runners
-  \end{enumerate}
+  \frametitle{More features}
+  \begin{description}
+    \item[Test suites] collection of tests that can be run with a single name
+    \item[Fixtures] {\em setup}/{\em teardown} methods run before and after every test
+    \item[Test runners] different output formats: text files, HTML, XML, GUI
+  \end{description}
 \end{frame}
 
 
@@ -118,6 +159,51 @@ For example:
   \end{description}
 \end{frame}
 
+\subsection{Simple test}
+
+\begin{frame}[t, fragile]
+  \frametitle{gpurepmat\_ut::test\_1d}
+
+\begin{lstlisting}[basicstyle=\ttfamily\fontsize{8pt}{8pt}\selectfont]
+function gpurepmat_ut::test_1d
+  compile_opt strictarr
+
+  dx = gpufindgen(5, ERROR=err)
+  assert, err eq 0, 'CUDA error: %s', gpu_errormessage(err)
+
+  dresult = gpurepmat(dx, 3, ERROR=err)
+  assert, err eq 0, 'CUDA error: %s', gpu_errormessage(err)
+
+  result = gpugetarr(dresult, ERROR=err)
+  assert, err eq 0, 'CUDA error: %s', gpu_errormessage(err)
+
+  gpufree, [dx, dresult]
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[t, fragile]
+  \frametitle{gpurepmat\_ut::test\_1d}
+
+\begin{lstlisting}[basicstyle=\ttfamily\fontsize{8pt}{8pt}\selectfont]
+  type = size(result, /type)
+  ndims = size(result, /n_dimensions)
+  dims = size(result, /dimensions)
+
+  standard = [[0., 1., 2., 3., 4.], $
+              [0., 1., 2., 3., 4.], $
+              [0., 1., 2., 3., 4.]]
+
+  assert, type eq 4L, 'incorrect type: %d', type
+  assert, ndims eq 1, 'incorrect number of dimensions: %d', ndims
+  assert, array_equal(dims, [15]), 'incorrect dimensions: [%s]', $
+          strjoin(strtrim(dims, 2), ',')
+  assert, array_equal(result, standard), 'incorrect value'
+
+  return, 1
+end
+\end{lstlisting}
+\end{frame}
+
 
 \subsection{Skipping tests}
 
@@ -129,6 +215,7 @@ For example, don't test double precision on a graphics card that is not capable 
           'CUDA device not double capable', $
           /skip
 \end{lstlisting}
+We can run the GPULib test suite on laptops and servers with greatly varying capabilities.
 \end{frame}
 
 \begin{frame}[t, fragile]
@@ -152,15 +239,15 @@ Don't test a routine in a DLM if the DLM is not available:
 
 \begin{frame}[t, fragile]
   \hypertarget{suites}{}
-  \frametitle{Test suites}
+  \frametitle{Test suites (collections of test cases)}
   \begin{enumerate}
-    \item create a class, say {\em mglib\_uts}, that inherits from {\em MGutTestSuite}
-    \item to automatically collect all {\em \_ut\_\_define.pro} files in its directory and subdirectories, just all
+    \item Create a class, say {\em mglib\_uts}, that inherits from {\em MGutTestSuite}
+    \item To automatically collect all {\em \_ut\_\_define.pro} files in its directory and subdirectories, just all
 \begin{lstlisting}
   self->add, /all
 \end{lstlisting}
-to the {\em ::init} method
-    \item run with
+to the {\em init} method
+    \item Run with
 \begin{lstlisting}
   IDL> mgunit, 'mglib_uts'
 \end{lstlisting}
@@ -202,6 +289,39 @@ This allows you to:
 \end{enumerate}
 \end{frame}
 
+\begin{frame}[t, fragile]
+  \frametitle{Setup}
+
+For example, the mglib tests check heap memory before\ldots
+\begin{lstlisting}[basicstyle=\ttfamily\fontsize{10pt}{10pt}\selectfont]
+pro mgutlibtestcase::setup
+  compile_opt strictarr
+
+  mg_heapinfo, n_pointers=nptrs, n_objects=nobjs
+  self.nptrs = nptrs
+  self.nobjs = nobjs
+end
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[t, fragile]
+  \frametitle{Teardown}
+
+\ldots and compare to after the test is executed
+\begin{lstlisting}[basicstyle=\ttfamily\fontsize{10pt}{10pt}\selectfont]
+pro mgutlibtestcase::teardown
+  compile_opt strictarr
+
+  mg_heapinfo, n_pointers=nptrs, n_objects=nobjs
+  assert, nptrs eq self.nptrs && nobjs eq self.nobjs, $
+          'leaked %d pointers, %d objects', $
+          nptrs - self.nptrs, $
+          nobjs - self.nobjs
+end
+\end{lstlisting}
+The GPULib tests check for leaked GPU memory.
+\end{frame}
+
 \section{Conclusion}
 
 \subsection{Tips}
@@ -233,7 +353,11 @@ This allows you to:
 
 {mgalloy@txcorp.com} \\
 {michaelgalloy.com} \\
-{@mgalloy}
+{@mgalloy} \\
+~\\
+{\em Modern IDL: A Guide to IDL Programming} \\
+{modernidl.idldev.com} \\
+
 
 \end{center}
 \end{frame}
@@ -241,8 +365,18 @@ This allows you to:
 % for extra slides
 \appendix
 
-\begin{frame}{GPULib}
+\begin{frame}{GPULib 1.6.2}
 \hypertarget{gpulib}{}
+
+GPULib provides CUDA bindings for IDL performing GPU accelerated routines for:
+\begin{itemize}
+  \item Vector and matrix operations
+  \item {\tt HISTOGRAM} and {\tt WHERE} routines
+  \item 1D, 2D, and 3D FFTs (including batched)
+  \item LAPACK linear algebra routines (MAGMA)
+  \item Loading and executing custom CUDA code
+\end{itemize}
+See {\tt txcorp.com/home/gpulib} for more information
 
 \hyperlink{examples}{\beamergotobutton{go to Examples}}
 \end{frame}
