@@ -1,0 +1,42 @@
+% Copyright 2007 by Till Tantau
+%
+% This file may be distributed and/or modified
+%
+% 1. under the LaTeX Project Public License and/or
+% 2. under the GNU Public License.
+%
+% See the file doc/licenses/LICENSE for more details.
+
+\ProvidesPackageRCS $Header: /home/vedranm/bitbucket/beamer/base/themes/theme/beamerthemeBoulder.sty,v d02a7cf4d8ae 2010/06/17 09:11:41 rivanvx $
+
+
+\mode<presentation>
+
+%\useoutertheme[subsection=false]{smoothbars}
+
+\linespread{1.25}
+
+\useoutertheme[subsection=false]{miniframes}
+\useinnertheme{default}
+\setbeamertemplate{navigation symbols}{}  % remove navigation symbols
+\setbeamertemplate{itemize item}[circle]
+\setbeamertemplate{itemize subitem}[square]
+
+\usecolortheme{eagle}
+
+\setbeamerfont{institute}{size=\small}
+\setbeamerfont{date}{size=\small}
+
+\usepackage{fontspec} 
+\setmonofont[Scale=0.9]{Monaco} 
+\defaultfontfeatures{Mapping=tex-text}  % after monofont is defined!
+\setsansfont[Ligatures={Common}]{Futura}
+
+\usepackage{listings}
+\usepackage{textcomp}
+\lstset{language=IDL,upquote=true,showstringspaces=false}
+\lstset{numbers=none}
+\lstset{basicstyle=\ttfamily,keywordstyle={}}
+
+\mode
+<all>
