@@ -37,8 +37,12 @@
   github.com/mgalloy/mgunit
 \end{lstlisting}
 
-    \item how old?
-    \item Goal: quick and easy, name conventions over explicit specifications
+    \item At least 6 years old, moved to GitHub about a year ago
+    \item Goal: quick and easy
+    \begin{enumerate}
+      \item use name conventions over explicit specifications
+      \item reasonable defaults
+    \end{enumerate}
   \end{itemize}
 \end{frame}
 
@@ -46,18 +50,47 @@
 \section{Using mgunit}
 \subsection{Basics}
 
-\begin{frame}[t]{Basics}
-  \begin{enumerate}
-    \item tests and test cases
-    \item assert (msg with format codes)
-    \item skipping
-  \end{enumerate}
+\begin{frame}[t, fragile]
+  \frametitle{Tests and test cases}
+
 \end{frame}
 
-\begin{frame}[t]{Advanced}
+\begin{frame}[t, fragile]
+  \frametitle{Running tests}
+
+\begin{lstlisting}
+  IDL> mgunit, 'mglib_uts'
+  IDL> mgunit, 'mgsubs_ut'
+  IDL> mgunit, ['mgsubs_ut', 'strwrap_ut']
+  IDL> mgunit, 'mgsubs_ut.test_derived'
+\end{lstlisting}
+
+\end{frame}
+
+\begin{frame}[t, fragile]
+  \frametitle{{\tt ASSERT} routine}
+
+The {\tt ASSERT} routine immediately causes a test to fail (or optionally skip the test) if the {\em condition} is not true:
+\begin{lstlisting}
+  ASSERT, condition $
+          [, msg] [, arg1] [, arg2] [, arg3] $
+          [, /SKIP]
+\end{lstlisting}
+For example:
+\begin{lstlisting}
+  assert, result eq standard, $
+          'incorrect result: %d', result
+\end{lstlisting}
+
+\end{frame}
+
+\subsection{Advanced}
+
+\begin{frame}[t, fragile]
+  \frametitle{Advanced}
   \begin{enumerate}
     \item test suites
-    \item fixtures (memory leaks)
+    \item setup/teardown
     \item test runners
   \end{enumerate}
 \end{frame}
@@ -85,20 +118,100 @@
   \end{description}
 \end{frame}
 
+
+\subsection{Skipping tests}
+
 \begin{frame}[t, fragile]
-  \frametitle{Example slide}
+  \frametitle{Skipping tests (GPULib)}
+For example, don't test double precision on a graphics card that is not capable of it:
+\begin{lstlisting}
+  assert, !gpu.mode eq 0 || gpuDoubleCapable(), $
+          'CUDA device not double capable', $
+          /skip
+\end{lstlisting}
 \end{frame}
 
+\begin{frame}[t, fragile]
+  \frametitle{Skipping tests (mglib)}
+Don't test a routine that requires a higher version of IDL than is present:
+\begin{lstlisting}
+  assert, mg_idlversion(require='8.0'), /skip, $
+          'test requires IDL 8.0, %s present', $
+          !version.release
+\end{lstlisting}
+Don't test a routine in a DLM if the DLM is not available:
+\begin{lstlisting}
+  assert, self->have_dlm('mg_analysis'), $
+          'MG_ANALYSIS DLM not found', $
+          /skip
+\end{lstlisting}
+
+\end{frame}
+
+\subsection{Test suites}
+
+\begin{frame}[t, fragile]
+  \hypertarget{suites}{}
+  \frametitle{Test suites}
+  \begin{enumerate}
+    \item create a class, say {\em mglib\_uts}, that inherits from {\em MGutTestSuite}
+    \item to automatically collect all {\em \_ut\_\_define.pro} files in its directory and subdirectories, just all
+\begin{lstlisting}
+  self->add, /all
+\end{lstlisting}
+to the {\em ::init} method
+    \item run with
+\begin{lstlisting}
+  IDL> mgunit, 'mglib_uts'
+\end{lstlisting}
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{mglib\_uts\_\_define.pro}
+\begin{lstlisting}[basicstyle=\ttfamily\fontsize{10pt}{10pt}\selectfont]
+function mglib_uts::init, _extra=e
+  compile_opt strictarr
+
+  if (~self->mguttestsuite::init(_strict_extra=e)) then $
+    return, 0
+  self->add, /all
+
+  return, 1
+end
+
+pro mglib_uts__define
+  compile_opt strictarr
+
+  define = { mglib_uts, inherits MGutTestSuite }
+end
+\end{lstlisting}
+\end{frame}
+
+\subsection{Inherit from a subclass of {\em MGutTestCase}}
+
+\begin{frame}
+  \frametitle{Inherit from a subclass of {\em MGutTestCase}}
+Unit tests in mglib inherit from {\em MGutLibTestCase}; unit tests in GPULib inherit from {\em GPUutTestCase}.
+
+This allows you to:
+\begin{enumerate}
+  \item set {\em setup}/{\em teardown} methods for all test cases at once (particularly for checking for memory leaks)
+  \item set member variables for the location of resource files, common error tolerances, etc.
+  \item define helper methods that are used throughout the tests (I have a {\em have\_dlm} method in {\em MGutTestCase})
+\end{enumerate}
+\end{frame}
 
 \section{Conclusion}
 
 \subsection{Tips}
 \begin{frame}[t]{Tips}
   \begin{enumerate}
-    \item use something (hopefully mgunit) {\em regularly}
-    \item follow the name conventions
-    \item inherit from a subclass of MGutTestCase
-    \item skipping is useful
+    \item Use something (hopefully mgunit) {\em regularly}
+    \item Follow the name conventions
+    \item Inherit from a subclass of MGutTestCase
+    \item Use descriptive names for test methods
+    \item Skipping tests is useful
   \end{enumerate}
 \end{frame}
 
@@ -106,7 +219,8 @@
 \begin{frame}[t]{Future work}
   \begin{enumerate}
     \item mgunit is fairly mature and not many extra features are currently planned
-    \item may be integrated into docs in some way, but that will probably be a feature of IDLdoc and separate from mgunit
+    \item Testing may be integrated into docs in some way, but that will probably be a feature of IDLdoc and separate from mgunit
+    \item Any suggestions? Let me know/file an issue on GitHub.
   \end{enumerate}
 \end{frame}
 
@@ -132,5 +246,6 @@
 
 \hyperlink{examples}{\beamergotobutton{go to Examples}}
 \end{frame}
+
 
 \end{document}
