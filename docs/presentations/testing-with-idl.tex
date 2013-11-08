@@ -131,6 +131,13 @@ Run a list of test cases:
 
 \end{frame}
 
+\begin{frame}{Output}
+For example, from the IDL prompt:
+\begin{center}
+  \includegraphics[scale=0.45]{cli-output.png}
+\end{center}
+\end{frame}
+
 \begin{frame}[t, fragile]
   \frametitle{{\tt ASSERT} routine}
 
@@ -340,7 +347,7 @@ pro mgutlibtestcase::teardown
           nobjs - self.nobjs
 end
 \end{lstlisting}
-The GPULib tests check for leaked GPU memory.
+The GPULib tests also check for leaked GPU memory.
 \end{frame}
 
 \section{Conclusion}
