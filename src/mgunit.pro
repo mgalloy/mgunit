@@ -50,7 +50,7 @@ end
 ;     set to print color output to the output log
 ;   filename : in, optional, type=string
 ;     name of file to send output to; if not present sends output to the
-;     output log
+;     output log (can be an array if `RUNNERS` is an array)
 ;   html : in, optional, type=boolean
 ;     set to indicate HTML output instead of plain text
 ;   xml : in, optional, type=boolean
@@ -59,6 +59,10 @@ end
 ;     set to indicate XML output in JUnit format instead of plain text
 ;   gui : in, optional, type=boolean
 ;     set to bring up an interactive GUI to run the tests
+;   runners : in, optional, type=string/strarr
+;     set to a string or string array specifying the test runners to use:
+;     `MGutGuiRunner`, `MGutHtmlRunner`, `MGutXmlRunner`, `MGutJunitRunner`, or
+;     `MGutCliRunner`
 ;   npass : out, optional, type=long
 ;     number of tests that passed
 ;   nfail : out, optional, type=long
@@ -74,9 +78,9 @@ end
 ;-
 pro mgunit, tests, color=color, $
             filename=filename, html=html, xml=xml, junit=junit, gui=gui, $
+            runners=runners, $
             npass=npass, nfail=nfail, nskip=nskip, ntests=ntests, $
-            failures_only=failuresOnly, version=version, $
-            runners=runners
+            failures_only=failuresOnly, version=version
   compile_opt strictarr
 
   if (keyword_set(version)) then begin
