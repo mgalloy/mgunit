@@ -28,6 +28,29 @@
   \tableofcontents
 \end{frame}
 
+\begin{frame}{Why test?}
+Advantages:
+  \begin{enumerate}
+    \item find problems early
+    \item provide safety for making changes
+    \item provide an example of using the code
+    \item design interface (Test-Driven Development)
+    \item find problems later (version control helps)
+  \end{enumerate}
+You have to run the code at some point to see if it works. Why not put that in a file as a unit test that can be run at any time?
+\end{frame}
+
+\begin{frame}{Legacy code}
+  \begin{quote}All code is legacy code.\end{quote}
+When to write a unit test? Every time you ``touch'' a routine:
+  \begin{enumerate}
+    \item creating or modifying a routine/class
+    \item after finding a bug
+    \item after looking at it
+    \item after calling it
+  \end{enumerate}
+\end{frame}
+
 \begin{frame}[t, fragile]
   \frametitle{mgunit project}
   \begin{itemize}
@@ -325,11 +348,12 @@ The GPULib tests check for leaked GPU memory.
 \subsection{Tips}
 \begin{frame}[t]{Tips}
   \begin{enumerate}
-    \item Use something (hopefully mgunit) {\em regularly}
+    \item Run tests {\em regularly}
     \item Follow the name conventions
-    \item Inherit from a subclass of MGutTestCase
+    \item Inherit from a subclass of {\em MGutTestCase}
     \item Use descriptive names for test methods
-    \item Skipping tests is useful
+    \item Skipping tests allows tests to run in a wide range of environments
+    \item Keep tests fairly quick
   \end{enumerate}
 \end{frame}
 
