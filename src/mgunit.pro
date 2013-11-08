@@ -75,7 +75,8 @@ end
 pro mgunit, tests, color=color, $
             filename=filename, html=html, xml=xml, junit=junit, gui=gui, $
             npass=npass, nfail=nfail, nskip=nskip, ntests=ntests, $
-            failures_only=failuresOnly, version=version
+            failures_only=failuresOnly, version=version, $
+            runners=runners
   compile_opt strictarr
 
   if (keyword_set(version)) then begin
@@ -88,10 +89,8 @@ pro mgunit, tests, color=color, $
     keyword_set(html): runnerName = 'MGutHtmlRunner'
     keyword_set(xml): runnerName = 'MGutXmlRunner'
     keyword_set(junit): runnerName = 'MGutJUnitRunner'
-    else: runnerName = 'MGutCliRunner'
+    else: runnerName = n_elements(runners) gt 0L ? runners : 'MGutCliRunner'
   endcase
-
-  _color = (keyword_set(color) || mgunit_findIfTty()) && (n_elements(filename) eq 0L)
 
   if (n_elements(tests) gt 0) then begin
     testRunner = obj_new('MGutCompoundRunner')
@@ -104,9 +103,17 @@ pro mgunit, tests, color=color, $
                         name='All tests', $
                         failures_only=failuresOnly)
 
-    testRunner->add, obj_new(runnerName, parent=testRunner, $
-                             filename=filename, color=_color, $
-                             test_suite=testsuite)
+    for i = 0L, n_elements(runnerName) - 1L do begin
+      f = n_elements(f) eq 0L ? 0L : i mod n_elements(filename)
+      _filename = n_elements(filename) eq 0L ? '' : filename[f]
+      _color = (keyword_set(color) || mgunit_findIfTty()) $
+                 && (n_elements(filename) eq 0L || strlen(filename[f]) eq 0L)
+      testRunner->add, obj_new(runnerName[i], $
+                               parent=testRunner, $
+                               filename=_filename, $
+                               color=_color, $
+                               test_suite=testsuite)
+    endfor
 
     testsuite->add, tests
     testsuite->run

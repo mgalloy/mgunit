@@ -259,12 +259,12 @@ end
 ;+
 ; Initialize the test runner.
 ;
-; :Returns: 
+; :Returns:
 ;    1 for success, 0 for failure
 ;
 ; :Keywords:
-;    filename : in, optional, type=string 
-;       if present, output is sent to that file, otherwise output is sent to 
+;    filename : in, optional, type=string
+;       if present, output is sent to that file, otherwise output is sent to
 ;       `stdout`
 ;    color : in, optional, type=boolean
 ;       set to print color output
@@ -279,7 +279,7 @@ function mgutclirunner::init, filename=filename, color=color, _extra=e
     if (~file_test(logDir)) then file_mkdir, logDir
   endif
   
-  if (n_elements(filename) gt 0) then begin
+  if (n_elements(filename) gt 0 && strlen(filename) gt 0L) then begin
     openw, logLun, filename, /get_lun
     self.logLun = logLun
   endif else begin
@@ -301,7 +301,7 @@ end
 ; Define member variables.
 ;
 ; :Fields:
-;    logLun 
+;    logLun
 ;       the logical unit number to send output to (-1L by default)
 ;    indent
 ;       number of spaces a single indent should be
