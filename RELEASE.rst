@@ -8,6 +8,9 @@ mgunit 1.4
 
 * Fix for test cases with no valid tests.
 
+* Added RUNNERS keyword and allowed FILENAMES to accept a string array so that
+  output can be send to multiple outputs
+
 
 mgunit 1.3
 ----------
