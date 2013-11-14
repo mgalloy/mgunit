@@ -18,10 +18,12 @@
 .compile mgunit
 .compile mguttestrunner__define
 .compile mgutcompoundrunner__define.pro
+  
 .compile mg_ansicode
 .compile mg_src_root
 .compile mg_options__define
-
+.compile mg_updater
+.compile mg_responsecode_message
 
 ; compile any system routines that are used in the required code
 resolve_all, /quiet
