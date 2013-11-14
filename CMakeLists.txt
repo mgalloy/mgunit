@@ -57,6 +57,19 @@ add_custom_command(
   DEPENDS ${PROFILES})
 add_custom_target(savfile ALL DEPENDS mgunit.sav)
 
+# setup installer
+
+if (WIN32)
+  set(CPACK_GENERATOR ZIP)
+else ()
+  set(CPACK_GENERATOR TGZ)
+endif ()
+
+set(MGLIB_PACKAGE_VERSION "${VERSION}.${REVISION}")
+set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${MGLIB_PACKAGE_VERSION}")
+
+include(CPack)
+
 # script to build mgunit.sav only at "make install"
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/mgunit.sav DESTINATION lib)
 
