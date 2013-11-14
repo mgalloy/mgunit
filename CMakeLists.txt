@@ -35,14 +35,14 @@ file(GLOB_RECURSE IDLDOC_FILES "src/*.idldoc")
 
 add_custom_command(
   OUTPUT api-docs/index.html
-  COMMAND ${IDL_EXECUTABLE} -quiet -IDL_QUIET 1 -e mgunit_build_docs
+  COMMAND ${IDL_EXECUTABLE} -quiet -IDL_QUIET 1 -IDL_STARTUP \"\" -IDL_PATH \"+${CMAKE_CURRENT_SOURCE_DIR}${IDL_PATH_SEP}<IDL_DEFAULT>\" -e mgunit_build_docs
   DEPENDS ${PRO_FILES} ${IDLDOC_FILES}
 )
 add_custom_target(doc DEPENDS api-docs/index.html)
 
 add_custom_command(
   OUTPUT api-userdocs/index.html
-  COMMAND ${IDL_EXECUTABLE} -quiet -IDL_QUIET 1 -e mgunit_build_userdocs
+  COMMAND ${IDL_EXECUTABLE} -quiet -IDL_QUIET 1 -IDL_STARTUP \"\" -IDL_PATH \"+${CMAKE_CURRENT_SOURCE_DIR}${IDL_PATH_SEP}<IDL_DEFAULT>\" -e mgunit_build_userdocs
   DEPENDS ${PRO_FILES} ${IDLDOC_FILES}
 )
 add_custom_target(userdoc ALL DEPENDS api-userdocs/index.html)
@@ -51,9 +51,14 @@ set_directory_properties(PROPERTIES
   ADDITIONAL_MAKE_CLEAN_FILES "api-userdocs;api-docs;mgunit.sav"
 )
 
+add_custom_command(
+  OUTPUT mgunit.sav
+  COMMAND ${IDL_EXECUTABLE} -quiet -IDL_QUIET 1 -IDL_STARTUP \"\" -IDL_PATH \"+${CMAKE_CURRENT_SOURCE_DIR}${IDL_PATH_SEP}<IDL_DEFAULT>\" mgunit_build
+  DEPENDS ${PROFILES})
+add_custom_target(savfile ALL DEPENDS mgunit.sav)
+
 # script to build mgunit.sav only at "make install"
-install(SCRIPT mgunit_build.cmake)
-install(FILES mgunit.sav DESTINATION lib)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/mgunit.sav DESTINATION lib)
 
 install(FILES README.rst COPYING.rst RELEASE.rst DESTINATION .)
-install(DIRECTORY api-userdocs DESTINATION .)
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/api-userdocs DESTINATION .)

@@ -85,6 +85,7 @@ pro mgunit, tests, color=color, $
 
   if (keyword_set(version)) then begin
     print, string(mgunit_version(/full), format='(%"mgunit %s")')
+
     return
   endif
 

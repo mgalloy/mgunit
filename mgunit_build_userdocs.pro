@@ -9,7 +9,7 @@ pro mgunit_build_userdocs
   root = mg_src_root()
 
   idldoc, root=filepath('', subdir='src', root=root), $
-          output=filepath('', subdir='api-userdocs', root=root), $
+          output=filepath('', subdir='api-userdocs', root='.'), $
           overview='overview.txt', $
           /nosource, $
           title=string(mgunit_version(), format='(%"mgunit %s API documentation")'), $
