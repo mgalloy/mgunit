@@ -1,6 +1,5 @@
--------------
 Release notes
--------------
+=============
 
 
 mgunit 1.4
@@ -14,7 +13,7 @@ mgunit 1.4
 
 mgunit 1.3
 ----------
-Released 12 February 2013
+*Released 12 February 2013*
 
 * Added optional OUTPUT keyword to tests which, if present and set during the
   the test, is echoed to the output.
@@ -32,7 +31,7 @@ Released 12 February 2013
 
 mgunit 1.2
 ----------
-Released 7 July 2011
+*Released 7 July 2011*
 
 * Added FAILURES_ONLY keyword to display only failed tests.
 
@@ -43,7 +42,7 @@ Released 7 July 2011
 
 mgunit 1.1
 ----------
-Released 22 February 2010
+*Released 22 February 2010*
 
 * Added an extra argument to ASSERT which can be inserted into the
   message via C-style format codes.
@@ -61,7 +60,7 @@ Released 22 February 2010
   
 mgunit 1.0
 ----------
-Released 27 April 2009
+*Released 27 April 2009*
 
 * Framework for creating pass/fail unit tests with as little overhead and
   boilerplate text as possible. Simply create a new class which inherits from
