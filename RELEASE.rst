@@ -5,6 +5,8 @@ Release notes
 mgunit 1.4
 ----------
 
+* Checks for updates when using the VERSION keyword.
+
 * Fix for test cases with no valid tests.
 
 * Added RUNNERS keyword and allowed FILENAMES to accept a string array so that
