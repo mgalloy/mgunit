@@ -10,7 +10,7 @@ pro mgunit_build_userdocs
 
   idldoc, root=filepath('', subdir='src', root=root), $
           output=filepath('', subdir='api-userdocs', root='.'), $
-          overview='overview.txt', $
+          overview=filepath('overview.txt', root=root), $
           /nosource, $
           title=string(mgunit_version(), format='(%"mgunit %s API documentation")'), $
           subtitle='Unit testing framework for IDL', $
