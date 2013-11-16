@@ -84,7 +84,7 @@ pro mgunit, tests, color=color, $
   compile_opt strictarr
 
   if (keyword_set(version)) then begin
-    print, string(mgunit_version(/full), format='(%"mgunit %s")')
+    print, string(mgunit_version(), format='(%"mgunit %s")')
 
     url = 'https://raw.github.com/mgalloy/mgunit/master/RELEASE.rst'
     needs_updating = mg_updater(url, $
