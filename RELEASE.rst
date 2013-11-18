@@ -4,6 +4,7 @@ Release notes
 
 mgunit 1.4
 ----------
+*Releasd 18 November 2013*
 
 * Checks for updates when using the VERSION keyword.
 
