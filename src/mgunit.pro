@@ -86,12 +86,15 @@ pro mgunit, tests, color=color, $
   if (keyword_set(version)) then begin
     print, string(mgunit_version(), format='(%"mgunit %s")')
 
-    url = 'https://raw.github.com/mgalloy/mgunit/master/RELEASE.rst'
+    url = 'http://raw.github.com/mgalloy/mgunit/master/RELEASE.rst'
     needs_updating = mg_updater(url, $
                                 current_version=mgunit_version(), $
                                 name='mgunit', $
                                 releases=releases, $
-                                error=error, response_code=response_code)
+                                error=error, $
+                                response_code=response_code, $
+                                ssl_verify_peer=0, $
+                                ssl_verify_host=0)
     if (error ne 0L) then begin
       print, 'Error checking for updates: ' + mg_responsecode_message(response_code)
     endif else begin
