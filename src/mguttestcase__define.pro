@@ -12,7 +12,7 @@
 ;
 ;       pro mytest::test_myroutine
 ;         compile_opt strictarr
-;          
+;
 ;         answer = myroutine(1.0)   ; answer should be 2.
 ;         assert, abs(answer - 2.) lt 0.01, 'incorrect result, %f', answer
 ;
@@ -21,7 +21,7 @@
 ;
 ;       pro mytest__define
 ;         compile_opt strictarr
-;          
+;
 ;         define = { mytest, inherits MGutTaseCase }
 ;       end
 ;
@@ -178,7 +178,7 @@ end
 
 ;+
 ; Removes the given `prefix` from the `msg` if present.
-; 
+;
 ; :Private:
 ;
 ; :Params:
@@ -428,7 +428,7 @@ end
 ;
 ; :Returns:
 ;   1 for succcess, 0 for failure
-; 
+;
 ; :Keywords:
 ;   test_runner : in, required, type=object
 ;     subclass of `MGutTestRunner`
