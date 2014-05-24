@@ -81,7 +81,7 @@ end
 ;
 ; :Private:
 ;
-; :Returns: 
+; :Returns:
 ;    object
 ;
 ; :Params:
@@ -112,9 +112,9 @@ end
 
 
 ;+
-; Recompiles all test cases contained by the suite or contained by child 
+; Recompiles all test cases contained by the suite or contained by child
 ; suites.
-; 
+;
 ; :Private:
 ;-
 pro mguttestsuite::recompileTestCases
@@ -209,8 +209,8 @@ end
 ;
 ; :Keywords:
 ;    all : in, optional, type=boolean
-;       set to add all the files in the current directory that end in 
-;       "_ut__define.pro" (the current directory is defined to be the 
+;       set to add all the files in the current directory that end in
+;       "_ut__define.pro" (the current directory is defined to be the
 ;       directory where the method calling this method is located)
 ;-
 pro mguttestsuite::add, tests, all=all

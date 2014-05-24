@@ -327,18 +327,20 @@ end
 
 ;+
 ; Find the name and number of tests (i.e. methods with names that start with
-; "test").
+; "test") for a given class name.
 ;
 ; :Private:
 ;-
-pro mguttestcase::findTestnames
+function mguttestcase::findTestnamesForClass, classname, $
+                                              ntests=ntests, $
+                                              have_output=have_output
   compile_opt strictarr
 
   ; find tests: any method with name test*
   help, /routines, output=routines
   functionsPos = where(strmatch(routines, 'Compiled Functions:'), count)
   routines = routines[functionsPos:*]
-  result = stregex(routines, '^' + obj_class(self) + '::(test[^ ]*).*', $
+  result = stregex(routines, '^' + classname + '::(test[^ ]*).*', $
                    /extract, /subexpr, /fold_case)
   testnames = reform(result[1, *])
 
@@ -348,18 +350,54 @@ pro mguttestcase::findTestnames
     testnames = testnames[ind]
   endif else testnames = ''
 
-  ; record results
-  self.ntests = ntests
-  *self.testnames = strlowcase(testnames)
-  
-  *self.have_output = bytarr(n_elements(testnames))
+  have_output = bytarr(n_elements(testnames))
   for t = 0L, ntests - 1L do begin
-    params = routine_info(obj_class(self) + '::' + testnames[t], $
+    params = routine_info(classname + '::' + testnames[t], $
                           /parameters, /functions)
     if (params.num_kw_args eq 0L) then continue
     ind = where(params.kw_args eq 'OUTPUT', ncount)
-    (*self.have_output)[t] = ncount gt 0L
+    have_output[t] = ncount gt 0L
   endfor
+
+  return, testnames
+end
+
+
+;+
+; Find the name and number of tests (i.e. methods with names that start with
+; "test"), including inherited ones.
+;
+; :Private:
+;-
+pro mguttestcase::findTestnames
+  compile_opt strictarr
+
+  testnames = self->findTestnamesForClass(obj_class(self), $
+                                          ntests=ntests, $
+                                          have_output=have_output)
+
+  superclassnames = obj_class(self, count=nsuperclasses, /superclass)
+  for s = 0L, nsuperclasses - 1L do begin
+    tnames = self->findTestnamesForClass(superclassnames[s], $
+                                         ntests=nsupertests, $
+                                         have_output=super_output)
+    if (nsupertests gt 0L) then begin
+      if (ntests gt 0L) then begin
+        testnames = [testnames, tnames]
+        have_output = [have_output, super_output]
+        ntests += nsupertests
+      endif else begin
+        testnames = tnames
+        have_output = super_output
+        ntests = nsupertests
+      endelse
+    endif
+  endfor
+
+  ; record results
+  self.ntests = ntests
+  *self.testnames = strlowcase(testnames)
+  *self.have_output = have_output
 end
 
 
