@@ -1,8 +1,8 @@
 ; docformat = 'rst'
 
 ;+
-; Test suites are containers for test cases. Either subclass `MGutTestSuite` 
-; and add test suites/test cases in its `init` method or create an 
+; Test suites are containers for test cases. Either subclass `MGutTestSuite`
+; and add test suites/test cases in its `init` method or create an
 ; `MGutTestSuite` and use the `add` method to add test suites/cases.
 ;
 ; For example, it is typical do create a test suite like the following::
@@ -23,7 +23,7 @@
 ;      define = { MyTestSuite_uts, inherits MGutTestSuite }
 ;    end
 ;
-; This test will add all the files in the current directory that end in 
+; This test will add all the files in the current directory that end in
 ; "_ut__define.pro" as test cases. Then the following will run all the test
 ; cases in a directory::
 ;
@@ -133,7 +133,7 @@ end
 
 ;+
 ; Display test results via test runner methods.
-; 
+;
 ; :Private:
 ;-
 pro mguttestsuite::display
@@ -398,25 +398,25 @@ end
 ; Define member variables.
 ;
 ; :Fields:
-;    name 
+;    name
 ;       name of the object
 ;    home
 ;       directory (with trailing slash) containing the source code for this
 ;       test suite
-;    level 
+;    level
 ;       number of layers below the top-most containing test suite
 ;    testcases
 ;       `IDL_Container` holding test suites or test cases
 ;    testRunner
 ;       subclass of `MGutTestRunner`
-;    npass 
-;       number of passing tests contained in the hierarchy below this test 
+;    npass
+;       number of passing tests contained in the hierarchy below this test
 ;       suite
-;    nfail 
-;       number of failing tests contained in the hierarchy below this test 
+;    nfail
+;       number of failing tests contained in the hierarchy below this test
 ;       suite
 ;    nskip
-;       number of skipped tests contained in the hierarchy below this test 
+;       number of skipped tests contained in the hierarchy below this test
 ;       suite
 ;    failuresOnly
 ;       flag to indicate only failed tests should be reported
