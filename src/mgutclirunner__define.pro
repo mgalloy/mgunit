@@ -48,14 +48,14 @@ end
 ; Report the results of a test suite.
 ;
 ; :Keywords:
-;    npass : in, required, type=integer 
-;       number of passing tests contained in the hierarchy below the test 
+;    npass : in, required, type=integer
+;       number of passing tests contained in the hierarchy below the test
 ;       suite
 ;    nfail : in, required, type=integer
-;       number of failing tests contained in the hierarchy below the test 
+;       number of failing tests contained in the hierarchy below the test
 ;       suite
 ;    nskip : in, required, type=integer
-;       number of skipped tests contained in the hierarchy below the test 
+;       number of skipped tests contained in the hierarchy below the test
 ;       suite
 ;    level : in, required, type=integer
 ;       level of test suite
@@ -74,7 +74,7 @@ end
 
 ;+
 ; Report a test case has begun.
-; 
+;
 ; :Params:
 ;    testcase : in, required, type=string
 ;       name of test case
@@ -124,7 +124,7 @@ end
 
 ;+
 ; Report the start of single test.
-; 
+;
 ; :Params:
 ;    testname : in, required, type=string
 ;       name of test
