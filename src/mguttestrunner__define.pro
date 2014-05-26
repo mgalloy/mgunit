@@ -10,7 +10,7 @@
 
 ;+
 ; Report a test suite has begun.
-; 
+;
 ; :Params:
 ;    testsuite : in, required, type=string
 ;       name of test suite
@@ -56,7 +56,7 @@ end
 
 ;+
 ; Report a test case has begun.
-; 
+;
 ; :Params:
 ;    testcase : in, required, type=string
 ;       name of test case
@@ -95,7 +95,7 @@ end
 
 ;+
 ; Report the start of single test.
-; 
+;
 ; :Params:
 ;    testname : in, required, type=string
 ;       name of test
@@ -112,7 +112,7 @@ end
 
 ;+
 ; Report the result of a single test.
-; 
+;
 ; :Params:
 ;   msg : in, required, type=string
 ;     message to display when test fails
