@@ -211,12 +211,12 @@ pro mguttestcase::display
                                         ntests=self.ntests, $
                                         level=self.level
   for t = 0L, self.ntests - 1L do begin
-    if ((*self.passes)[t] eq 0B) then begin
+    if ((*self.passes)[t] eq 0B && (*self.skips)[t] eq 0B) then begin
       self.testRunner->reportTestStart, (*self.testnames)[t], level=self.level
       self.testRunner->reportTestResult, (*self.logmsgs)[t], $
                                          passed=(*self.passes)[t], $
                                          output=(*self.output)[t], $
-                                         skipped=self.skipped, $
+                                         skipped=(*self.skips)[t], $
                                          time=self.time, level=self.level, $
                                          math_errors=self.math_errors
     endif
@@ -308,6 +308,7 @@ pro mguttestcase::run
                 
     (*self.logmsgs)[t] = logMsg
     (*self.passes)[t] = passed
+    (*self.skips)[t] = self.skipped
     if (~self.failuresOnly) then begin
       self.testRunner->reportTestResult, logMsg, passed=passed, output=(*self.output)[t], $
                                          skipped=self.skipped, $
@@ -457,7 +458,7 @@ pro mguttestcase::cleanup
   compile_opt strictarr
 
   ptr_free, self.testnames, self.have_output, self.output, $
-            self.logmsgs, self.passes
+            self.logmsgs, self.passes, self.skips
 end
 
 
@@ -484,12 +485,14 @@ function mguttestcase::init, test_runner=testRunner, failures_only=failuresOnly
   self.output = ptr_new(/allocate_heap)
   self.logmsgs = ptr_new(/allocate_heap)
   self.passes = ptr_new(/allocate_heap)
+  self.skips = ptr_new(/allocate_heap)
 
   self->findTestnames
 
   *self.output = strarr(n_elements(*self.testnames))
   *self.logmsgs = strarr(n_elements(*self.testnames))
   *self.passes = bytarr(n_elements(*self.testnames))
+  *self.skips = bytarr(n_elements(*self.testnames))
 
   self.level = 0L
 
@@ -536,6 +539,7 @@ pro mguttestcase__define
              math_errors: 0L, $
              logmsgs: ptr_new(), $
              passes: ptr_new(), $
+             skips: ptr_new(), $
              level: 0L, $
              ntests: 0L, $
              npass: 0L, $
