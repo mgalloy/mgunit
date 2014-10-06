@@ -28,7 +28,7 @@
 .compile mg_responsecode_message
 
 ; compile any system routines that are used in the required code
-resolve_all, /quiet
+resolve_all, /quiet, /continue_on_error
 
 ; create the sav file
 save, filename='mgunit.sav', /routines, $
