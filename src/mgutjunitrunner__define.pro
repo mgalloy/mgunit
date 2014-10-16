@@ -31,7 +31,7 @@
 
 ;+
 ; Report a test suite has begun.
-; 
+;
 ; :Params:
 ;    testsuite : in, required, type=string
 ;       name of test suite
@@ -151,7 +151,7 @@ end
 
 ;+
 ; Report the result of a single test.
-; 
+;
 ; :Params:
 ;   msg : in, required, type=string
 ;     message to display when test fails
@@ -187,6 +187,32 @@ pro mgutjunitrunner::reportTestResult, msg, passed=passed, $
   endif
   
   self->_print, self.lun, string(indent, format='(%"%s  </testcase>")')
+end
+
+
+;+
+; Report the test coverage of a test case.
+;
+; :Params:
+;   covered_routines : in, required, type=strarr
+;     string array of routines completely covered or `!null` if no routine
+;     was completely covered
+;   tested_routines : in, required, type=array of structures
+;     array of structures of all tested routines of the form::
+;
+;       { name: '', is_function: 0B, untested_lines: '' }
+;
+; :Keywords:
+;   level : in, required, type=integer
+;     level of test case
+;-
+pro mgutjunitrunner::reportTestCaseCoverage, covered_routines, tested_routines, $
+                                             level=level, $
+                                             total_nlines=total_nlines, $
+                                             covered_nlines=covered_nlines
+  compile_opt strictarr
+
+  ; TODO: implement
 end
 
 

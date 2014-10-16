@@ -145,8 +145,34 @@ end
 
 
 ;+
+; Report the test coverage of a test case.
+;
+; :Params:
+;   covered_routines : in, required, type=strarr
+;     string array of routines completely covered or `!null` if no routine
+;     was completely covered
+;   tested_routines : in, required, type=array of structures
+;     array of structures of all tested routines of the form::
+;
+;       { name: '', is_function: 0B, untested_lines: '' }
+;
+; :Keywords:
+;   level : in, required, type=integer
+;     level of test case
+;-
+pro mgutguirunner::reportTestCaseCoverage, covered_routines, tested_routines, $
+                                           level=level, $
+                                           total_nlines=total_nlines, $
+                                           covered_nlines=covered_nlines
+  compile_opt strictarr
+
+  ; TODO: implement
+end
+
+
+;+
 ; Report the start of single test.
-; 
+;
 ; :Params:
 ;    testname : in, required, type=string
 ;       name of test

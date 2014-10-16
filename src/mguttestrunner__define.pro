@@ -77,17 +77,35 @@ end
 ; Report the results of a test case.
 ;
 ; :Keywords:
-;    npass : in, required, type=integer
-;       number of passing tests
-;    nfail : in, required, type=integer
-;       number of failing tests
-;    nskip : in, required, type=integer
-;       number of skipped tests
-;    level : in, required, type=integer
-;       level of test case
+;   npass : in, required, type=integer
+;     number of passing tests
+;   nfail : in, required, type=integer
+;     number of failing tests
+;   nskip : in, required, type=integer
+;     number of skipped tests
+;   level : in, required, type=integer
+;     level of test case
 ;-
 pro mguttestrunner::reportTestCaseResult, npass=npass, nfail=nfail, $
                                           nskip=nskip, level=level
+  compile_opt strictarr
+
+end
+
+
+;+
+; Report the test coverage of a test case.
+;
+; :Params:
+;   covered_routines : in, required, type=strarr
+;     string array of routines completely covered or `!null` if no routine
+;     was completely covered
+;   tested_routines : in, required, type=array of structures
+;     array of structures of all tested routines of the form::
+;
+;       { name: '', is_function: 0B, untested_lines: '' }
+;-
+pro mguttestrunner::reportTestCaseCoverage, covered_routines, tested_routines
   compile_opt strictarr
 
 end

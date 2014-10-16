@@ -7,23 +7,23 @@
 ; runner object.
 ;
 ; :Examples:
-;    To write your own tests, simply subclass from this class and make methods
-;    that start with "test"::
+;   To write your own tests, simply subclass from this class and make methods
+;   that start with "test"::
 ;
-;       pro mytest::test_myroutine
-;         compile_opt strictarr
+;     pro mytest::test_myroutine
+;       compile_opt strictarr
 ;
-;         answer = myroutine(1.0)   ; answer should be 2.
-;         assert, abs(answer - 2.) lt 0.01, 'incorrect result, %f', answer
+;       answer = myroutine(1.0)   ; answer should be 2.
+;       assert, abs(answer - 2.) lt 0.01, 'incorrect result, %f', answer
 ;
-;         return, 1
-;       end
+;       return, 1
+;     end
 ;
-;       pro mytest__define
-;         compile_opt strictarr
+;     pro mytest__define
+;       compile_opt strictarr
 ;
-;         define = { mytest, inherits MGutTaseCase }
-;       end
+;       define = { mytest, inherits MGutTaseCase }
+;     end
 ;
 ; :Properties:
 ;   npass : type=integer
@@ -38,8 +38,12 @@
 ;     array of method names which begin with "test"
 ;   math_errors : type=integer
 ;     bitmask of `CHECK_MATH` return values
+;   testing_routines : type=strarr
+;     routine names of tested routines
 ;-
 
+
+;= abstract fixture methods
 
 ;+
 ; Override in subclasses to perform setup actions before each test.
@@ -59,17 +63,7 @@ pro mguttestcase::teardown
 end
 
 
-;+
-; Set this test to be skipped.
-;
-; :Private:
-;-
-pro mguttestcase::skip
-  compile_opt strictarr
-  
-  self.skipped = 1
-end
-
+;= running the test
 
 ;+
 ; This is a safe place to actually run a single test. Any errors that occur
@@ -230,6 +224,42 @@ end
 
 
 ;+
+; Create a string from an array of line numbers.
+;
+; :Private:
+;
+; :Params:
+;   lines : in, required, type=long/`lonarr`
+;     array of line numbers or a scalar 0
+;-
+function mguttestcase::_combineLines, lines
+  compile_opt strictarr
+
+  if (size(lines, /n_dimensions) eq 0) then return, ''
+
+  f = '(%"%d")'
+  if (n_elements(lines) eq 1L) then return, string(lines[0], format=f)
+
+  diff = lines[1:-1] - lines[0:-2]
+  r = string(lines[0], format=f)
+  in_range = 0B
+  for i = 0L, n_elements(diff) - 1L do begin
+    if (diff[i] eq 1L) then begin
+      if (~in_range) then r += '-'
+      in_range = 1B
+    endif else begin
+      if (in_range) then r += string(lines[i], format=f)
+      in_range = 0B
+      r += ', ' + string(lines[i + 1], format=f)
+    endelse
+  endfor
+  if (in_range) then r += string(lines[i], format=f)
+
+  return, r
+end
+
+
+;+
 ; Run the tests for this class (i.e. methods with names that start with
 ; "test").
 ;
@@ -246,6 +276,18 @@ pro mguttestcase::run
     self.testRunner->reportTestCaseStart, strlowcase(obj_class(self)), $
                                           ntests=self.ntests, $
                                           level=self.level
+  endif
+
+
+  ; clear code coverage (only do this if running on IDL 8.4+)
+  if (mg_idlversion(require='8.4')) then begin
+    for i = 0L, n_elements(*self.testing_routines) - 1L do begin
+      r = (*self.testing_routines)[i]
+      resolve_routine, r.name, is_function=r.is_function
+      dummy = code_coverage(r.name, $
+                            function=r.is_function, $
+                            /clear)
+    endfor
   endif
 
   ; run each test
@@ -309,6 +351,7 @@ pro mguttestcase::run
     (*self.logmsgs)[t] = logMsg
     (*self.passes)[t] = passed
     (*self.skips)[t] = self.skipped
+
     if (~self.failuresOnly) then begin
       self.testRunner->reportTestResult, logMsg, passed=passed, output=(*self.output)[t], $
                                          skipped=self.skipped, $
@@ -317,12 +360,56 @@ pro mguttestcase::run
     endif
   endfor
 
+  ; report code coverage (only do this if running on IDL 8.4+)
+  if (mg_idlversion(require='8.4')) then begin
+    covered_routines = !null
+    total_nlines = 0L
+    covered_nlines = 0L
+    for i = 0L, n_elements(*self.testing_routines) - 1L do begin
+      r = (*self.testing_routines)[i]
+      untested_lines = code_coverage(r.name, $
+                                     function=r.is_function, nlines=nlines)
+      total_nlines += nlines
+      
+      if (size(untested_lines, /n_dimensions) eq 0) then begin
+        covered_routines = [covered_routines, r.name]
+        covered_nlines += nlines
+      endif else begin
+        covered_nlines += nlines - n_elements(untested_lines)
+      endelse
+      r.untested_lines = self->_combineLines(untested_lines)
+      (*self.testing_routines)[i] = r
+    endfor
+    if (n_elements(*self.testing_routines) gt 0L) then begin
+      self.testRunner->reportTestCaseCoverage, covered_routines, $
+                                               *self.testing_routines, $
+                                               level=self.level, $
+                                               total_nlines=total_nlines, $
+                                               covered_nlines=covered_nlines
+    endif
+  endif
+
+
   if (~self.failuresOnly) then begin
     self.testRunner->reportTestCaseResult, npass=self.npass, $
                                            nfail=self.nfail, $
                                            nskip=self.nskip, $
                                            level=self.level
   endif
+end
+
+
+;= configuring a test case
+
+;+
+; Set this test to be skipped.
+;
+; :Private:
+;-
+pro mguttestcase::skip
+  compile_opt strictarr
+  
+  self.skipped = 1
 end
 
 
@@ -403,38 +490,6 @@ end
 
 
 ;+
-; Get properties of the object.
-;-
-pro mguttestcase::getProperty, npass=npass, nfail=nfail, nskip=nskip, $
-                               ntests=ntests, testnames=testnames, $
-                               have_output=have_output, math_errors=math_errors
-  compile_opt strictarr
-
-  npass = self.npass
-  nfail = self.nfail
-  nskip = self.nskip
-  ntests = self.ntests
-  math_errors = self.math_errors
-
-  if (arg_present(testnames)) then testnames = *self.testnames
-  if (arg_present(have_output)) then have_output = *self.have_output
-end
-
-
-;+
-; Set properties of the object.
-;-
-pro mguttestcase::setProperty, testnames=testnames
-  compile_opt strictarr
-  
-  if (n_elements(testnames) gt 0L) then begin
-    *self.testnames = strlowcase(testnames)
-    self.ntests = n_elements(testnames)
-  endif
-end
-
-
-;+
 ; Test suites can contain other test suites or test cases. The level is the
 ; number of layers down from the top most test suite (level 0).
 ;
@@ -451,6 +506,57 @@ pro mguttestcase::setLevel, level
 end
 
 
+pro mguttestcase::addTestingRoutine, routine, is_function=is_function
+  compile_opt strictarr
+
+  for i = 0L, n_elements(routine) - 1L do begin
+    if (n_elements(*self.testing_routines) eq 0L) then begin
+      *self.testing_routines = { name: routine[i], is_function: keyword_set(is_function), untested_lines: '' }
+    endif else begin
+      *self.testing_routines = [*self.testing_routines, { name: routine[i], is_function: keyword_set(is_function), untested_lines: '' }]
+    endelse
+  endfor
+end
+
+
+;= property access
+
+;+
+; Get properties of the object.
+;-
+pro mguttestcase::getProperty, npass=npass, nfail=nfail, nskip=nskip, $
+                               ntests=ntests, testnames=testnames, $
+                               have_output=have_output, math_errors=math_errors, $
+                               testing_routines=testing_routines
+  compile_opt strictarr
+
+  npass = self.npass
+  nfail = self.nfail
+  nskip = self.nskip
+  ntests = self.ntests
+  math_errors = self.math_errors
+
+  if (arg_present(testnames)) then testnames = *self.testnames
+  if (arg_present(have_output)) then have_output = *self.have_output
+  if (arg_present(testing_routines)) then testing_routines = *self.testing_routines
+end
+
+
+;+
+; Set properties of the object.
+;-
+pro mguttestcase::setProperty, testnames=testnames
+  compile_opt strictarr
+  
+  if (n_elements(testnames) gt 0L) then begin
+    *self.testnames = strlowcase(testnames)
+    self.ntests = n_elements(testnames)
+  endif
+end
+
+
+;= lifecycle methods
+
 ;+
 ; Free resources.
 ;-
@@ -458,7 +564,7 @@ pro mguttestcase::cleanup
   compile_opt strictarr
 
   ptr_free, self.testnames, self.have_output, self.output, $
-            self.logmsgs, self.passes, self.skips
+            self.logmsgs, self.passes, self.skips, self.testing_routines
 end
 
 
@@ -486,6 +592,7 @@ function mguttestcase::init, test_runner=testRunner, failures_only=failuresOnly
   self.logmsgs = ptr_new(/allocate_heap)
   self.passes = ptr_new(/allocate_heap)
   self.skips = ptr_new(/allocate_heap)
+  self.testing_routines = ptr_new(/allocate_heap)
 
   self->findTestnames
 
@@ -540,6 +647,7 @@ pro mguttestcase__define
              logmsgs: ptr_new(), $
              passes: ptr_new(), $
              skips: ptr_new(), $
+             testing_routines: ptr_new(), $
              level: 0L, $
              ntests: 0L, $
              npass: 0L, $

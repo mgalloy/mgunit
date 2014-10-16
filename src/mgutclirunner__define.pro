@@ -123,6 +123,62 @@ end
 
 
 ;+
+; Report the test coverage of a test case.
+;
+; :Params:
+;   covered_routines : in, required, type=strarr
+;     string array of routines completely covered or `!null` if no routine
+;     was completely covered
+;   tested_routines : in, required, type=array of structures
+;     array of structures of all tested routines of the form::
+;
+;       { name: '', is_function: 0B, untested_lines: '' }
+;
+; :Keywords:
+;   level : in, required, type=integer
+;     level of test case
+;-
+pro mgutclirunner::reportTestCaseCoverage, covered_routines, tested_routines, $
+                                           level=level, $
+                                           total_nlines=total_nlines, $
+                                           covered_nlines=covered_nlines
+  compile_opt strictarr
+
+  indent = string(bytarr(level * self.indent) + self.space)
+  single_indent = string(bytarr(self.indent) + self.space)
+  self->_print, self.logLun, $
+                string(indent, $
+                       100.0 * covered_nlines / total_nlines, $
+                       format='(%"%sTest coverage: %0.1f\%")')
+  self->_print, self.logLun, $
+                string(indent, single_indent, 'Untested lines', $
+                       format='(%"%s%s%s")')
+  for i = 0L, n_elements(tested_routines) - 1L do begin
+    if (tested_routines[i].untested_lines ne '') then begin
+      self->_print, self.logLun, $
+                    string(indent, $
+                           single_indent, $
+                           single_indent, $
+                           tested_routines[i].name, $
+                           tested_routines[i].untested_lines, $
+                           format='(%"%s%s%s%s: lines %s")')
+    endif
+  endfor
+  if (n_elements(covered_routines) gt 0L) then begin
+    self->_print, self.logLun, $
+                  string(indent, single_indent, 'Completely covered routines', $
+                         format='(%"%s%s%s")')
+    self->_print, self.logLun, $
+                  string(indent, $
+                         single_indent, $
+                         single_indent, $
+                         strjoin(strtrim(covered_routines, 2), ', '), $
+                         format='(%"%s%s%s%s")')
+  endif
+end
+
+
+;+
 ; Report the start of single test.
 ;
 ; :Params:
@@ -286,7 +342,7 @@ function mgutclirunner::init, filename=filename, color=color, _extra=e
     self.logLun = -1L
   endelse
 
-  self.indent = 3L
+  self.indent = 2L
   self.space = (byte(' '))[0]
   self.isTty = n_elements(color) gt 0L $
                  ? keyword_set(color) $
