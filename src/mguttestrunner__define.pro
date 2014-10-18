@@ -8,6 +8,8 @@
 ; :Private:
 ;-
 
+;= MGutTestRunner interface
+
 ;+
 ; Report a test suite has begun.
 ;
@@ -16,12 +18,12 @@
 ;       name of test suite
 ;
 ; :Keywords:
-;    ntestcases : in, required, type=integer
-;       number of test suites/cases contained by the test suite
-;    ntests : in, required, type=integer
-;       number of tests contained in the hierarchy below this test suite
-;    level : in, required, type=level
-;       level of test suite
+;   ntestcases : in, required, type=integer
+;     number of test suites/cases contained by the test suite
+;   ntests : in, required, type=integer
+;     number of tests contained in the hierarchy below this test suite
+;   level : in, required, type=level
+;     level of test suite
 ;-
 pro mguttestrunner::reportTestSuiteStart, testsuite, $
                                           ntestcases=ntestcases, $
@@ -35,20 +37,23 @@ end
 ; Report the results of a test suite.
 ;
 ; :Keywords:
-;    npass : in, required, type=integer
-;       number of passing tests contained in the hierarchy below the test
-;       suite
-;    nfail : in, required, type=integer
-;       number of failing tests contained in the hierarchy below the test
-;       suite
-;    nskip : in, required, type=integer
-;       number of skipped tests contained in the hierarchy below the test
-;       suite
-;    level : in, required, type=integer
-;       level of test suite
+;   npass : in, required, type=integer
+;     number of passing tests contained in the hierarchy below the test suite
+;   nfail : in, required, type=integer
+;     number of failing tests contained in the hierarchy below the test suite
+;   nskip : in, required, type=integer
+;     number of skipped tests contained in the hierarchy below the test suite
+;   level : in, required, type=integer
+;     level of test suite
+;   total_nlines : in, required, type=long
+;     total number of lines in testing routines
+;   covered_nlines : in, required, type=long
+;     number of lines covered in testing routines
 ;-
 pro mguttestrunner::reportTestSuiteResult, npass=npass, nfail=nfail, $
-                                           nskip=nskip, level=level
+                                           nskip=nskip, level=level, $
+                                           total_nlines=total_nlines, $
+                                           covered_nlines=covered_nlines
   compile_opt strictarr
 
 end
@@ -58,14 +63,14 @@ end
 ; Report a test case has begun.
 ;
 ; :Params:
-;    testcase : in, required, type=string
-;       name of test case
+;   testcase : in, required, type=string
+;     name of test case
 ;
 ; :Keywords:
-;    ntests : in, required, type=integer
-;       number of tests contained in this test case
-;    level : in, required, type=level
-;       level of test case
+;   ntests : in, required, type=integer
+;     number of tests contained in this test case
+;   level : in, required, type=level
+;     level of test case
 ;-
 pro mguttestrunner::reportTestCaseStart, testcase, ntests=ntests, level=level
   compile_opt strictarr
@@ -104,8 +109,19 @@ end
 ;     array of structures of all tested routines of the form::
 ;
 ;       { name: '', is_function: 0B, untested_lines: '' }
+;
+; :Keywords:
+;   level : in, required, type=integer
+;     level of test case
+;   total_nlines : in, required, type=long
+;     total number of lines in testing routines
+;   covered_nlines : in, required, type=long
+;     number of lines covered in testing routines
 ;-
-pro mguttestrunner::reportTestCaseCoverage, covered_routines, tested_routines
+pro mguttestrunner::reportTestCaseCoverage, covered_routines, tested_routines, $
+                                            level=level, $
+                                            total_nlines=total_nlines, $
+                                            covered_nlines=covered_nlines
   compile_opt strictarr
 
 end
@@ -115,12 +131,12 @@ end
 ; Report the start of single test.
 ;
 ; :Params:
-;    testname : in, required, type=string
-;       name of test
+;   testname : in, required, type=string
+;     name of test
 ;
 ; :Keywords:
-;    level : in, required, type=integer
-;       level of test case
+;   level : in, required, type=integer
+;     level of test case
 ;-
 pro mguttestrunner::reportTestStart, testname, level=level
   compile_opt strictarr
@@ -158,6 +174,8 @@ pro mguttestrunner::reportTestResult, msg, passed=passed, $
 end
 
 
+;= lifecycle methods
+
 ;+
 ; Free resources.
 ;-
@@ -173,7 +191,14 @@ end
 ; Initialize the test runner.
 ;
 ; :Returns:
-;    1 for success, 0 for failure
+;   1 for success, 0 for failure
+;
+; :Keywords:
+;   parent : in, optional, type=object
+;     parent compound test runner
+;   test_suite : in, optional, type=object
+;     test suite object
+;
 ;-
 function mguttestrunner::init, parent=parent, test_suite=testSuite
   compile_opt strictarr
@@ -189,10 +214,10 @@ end
 ; Define member variables.
 ;
 ; :Fields:
-;    suite
-;       suite of tests the runner will run
-;    parent
-;       parent compound test, if present
+;   suite
+;     suite of tests the runner will run
+;   parent
+;     parent compound test, if present
 ;-
 pro mguttestrunner__define
   compile_opt strictarr

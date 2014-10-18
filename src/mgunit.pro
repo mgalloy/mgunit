@@ -76,11 +76,20 @@ end
 ;   version : in, optional, type=boolean
 ;     set to report version and exit
 ;-
-pro mgunit, tests, color=color, $
-            filename=filename, html=html, xml=xml, junit=junit, gui=gui, $
+pro mgunit, tests, $
+            color=color, $
+            filename=filename, $
+            html=html, $
+            xml=xml, $
+            junit=junit, $
+            gui=gui, $
             runners=runners, $
-            npass=npass, nfail=nfail, nskip=nskip, ntests=ntests, $
-            failures_only=failuresOnly, version=version
+            npass=npass, $
+            nfail=nfail, $
+            nskip=nskip, $
+            ntests=ntests, $
+            failures_only=failuresOnly, $
+            version=version
   compile_opt strictarr
 
   if (keyword_set(version)) then begin

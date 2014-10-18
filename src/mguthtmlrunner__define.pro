@@ -7,20 +7,22 @@
 ; :Private:
 ;-
 
+;= MGutTestRunner interface
+
 ;+
 ; Report a test suite has begun.
 ;
 ; :Params:
-;    testsuite : in, required, type=string
-;       name of test suite
+;   testsuite : in, required, type=string
+;     name of test suite
 ;
 ; :Keywords:
-;    ntestcases : in, required, type=integer
-;       number of test suites/cases contained by the test suite
-;    ntests : in, required, type=integer
-;       number of tests contained in the hierarchy below this test suite
-;    level : in, required, type=integer
-;       level of test suite
+;   ntestcases : in, required, type=integer
+;     number of test suites/cases contained by the test suite
+;   ntests : in, required, type=integer
+;     number of tests contained in the hierarchy below this test suite
+;   level : in, required, type=integer
+;     level of test suite
 ;-
 pro mguthtmlrunner::reportTestSuiteStart, testsuite, $
                                           ntestcases=ntestcases, $
@@ -46,20 +48,23 @@ end
 ; Report the results of a test suite.
 ;
 ; :Keywords:
-;    npass : in, required, type=integer
-;       number of passing tests contained in the hierarchy below the test 
-;       suite
-;    nfail : in, required, type=integer 
-;       number of failing tests contained in the hierarchy below the test 
-;       suite
-;    nskip : in, required, type=integer
-;       number of skipped tests contained in the hierarchy below the test 
-;       suite
-;    level : in, required, type=integer
-;       level of test suite
+;   npass : in, required, type=integer
+;     number of passing tests contained in the hierarchy below the test suite
+;   nfail : in, required, type=integer
+;     number of failing tests contained in the hierarchy below the test suite
+;   nskip : in, required, type=integer
+;     number of skipped tests contained in the hierarchy below the test suite
+;   level : in, required, type=integer
+;     level of test suite
+;   total_nlines : in, required, type=long
+;     total number of lines in testing routines
+;   covered_nlines : in, required, type=long
+;     number of lines covered in testing routines
 ;-
 pro mguthtmlrunner::reportTestSuiteResult, npass=npass, nfail=nfail, $
-                                           nskip=nskip, level=level
+                                           nskip=nskip, level=level, $
+                                           total_nlines=total_nlines, $
+                                           covered_nlines=covered_nlines
   compile_opt strictarr
 
   format = '(%"<span class=\"results\">Results: %d / %d tests passed, %d skipped</span></ul>")'
@@ -69,16 +74,16 @@ end
 
 ;+
 ; Report a test case has begun.
-; 
+;
 ; :Params:
-;    testcase : in, required, type=string
-;       name of test case
+;   testcase : in, required, type=string
+;     name of test case
 ;
 ; :Keywords:
-;    ntests : in, required, type=integer
-;       number of tests contained in this test case
-;    level : in, required, type=integer
-;       level of test case
+;   ntests : in, required, type=integer
+;     number of tests contained in this test case
+;   level : in, required, type=integer
+;     level of test case
 ;-
 pro mguthtmlrunner::reportTestCaseStart, testcase, ntests=ntests, level=level
   compile_opt strictarr
@@ -86,7 +91,7 @@ pro mguthtmlrunner::reportTestCaseStart, testcase, ntests=ntests, level=level
   self->_print, self.lun, $
                 '<ul class="testcase"><li><span class="casename">' + testcase $
                   + '</span> test case starting (' + strtrim(ntests, 2) $
-                  + ' test' + (ntests eq 1 ? '' : 's') + ')</li>' 
+                  + ' test' + (ntests eq 1 ? '' : 's') + ')</li>'
   self->_print, self.lun, '<ol>'
 end
 
@@ -95,14 +100,14 @@ end
 ; Report the results of a test case.
 ;
 ; :Keywords:
-;    npass : in, required, type=integer
-;       number of passing tests
-;    nfail : in, required, type=integer
-;       number of failing tests
-;    nskip : in, required, type=integer
-;       number of skipped tests
-;    level : in, required, type=integer
-;       level of test case
+;   npass : in, required, type=integer
+;     number of passing tests
+;   nfail : in, required, type=integer
+;     number of failing tests
+;   nskip : in, required, type=integer
+;     number of skipped tests
+;   level : in, required, type=integer
+;     level of test case
 ;-
 pro mguthtmlrunner::reportTestCaseResult, npass=npass, nfail=nfail, $
                                           nskip=nskip, level=level
@@ -116,14 +121,14 @@ end
 
 ;+
 ; Report the start of single test.
-; 
+;
 ; :Params:
-;    testname : in, required, type=string
-;       name of test
+;   testname : in, required, type=string
+;     name of test
 ;
 ; :Keywords:
-;    level : in, required, type=integer
-;       level of test case
+;   level : in, required, type=integer
+;     level of test case
 ;-
 pro mguthtmlrunner::reportTestStart, testname, level=level
   compile_opt strictarr
@@ -189,6 +194,10 @@ end
 ; :Keywords:
 ;   level : in, required, type=integer
 ;     level of test case
+;   total_nlines : in, required, type=long
+;     total number of lines in testing routines
+;   covered_nlines : in, required, type=long
+;     number of lines covered in testing routines
 ;-
 pro mguthtmlrunner::reportTestCaseCoverage, covered_routines, tested_routines, $
                                             level=level, $
@@ -204,14 +213,14 @@ end
 ; Prints a message to a LUN.
 ;
 ; :Params:
-;    lun : in, required, type=long
-;       logical unit number to print to
-;    text : in, required, type=string
-;       text to print
+;   lun : in, required, type=long
+;     logical unit number to print to
+;   text : in, required, type=string
+;     text to print
 ;
 ; :Keywords:
-;    _extra : in, optional, type=keywords
-;       keywords to MG_ANSICODE i.e. RED or GREEN
+;   _extra : in, optional, type=keywords
+;     keywords to MG_ANSICODE i.e. RED or GREEN
 ;-
 pro mguthtmlrunner::_print, lun, text, _extra=e
   compile_opt strictarr
@@ -220,7 +229,9 @@ pro mguthtmlrunner::_print, lun, text, _extra=e
   if (lun gt 0L) then flush, lun
 end
 
-     
+
+;= lifecycle methods
+
 ;+
 ; Free resources.
 ;-
@@ -238,17 +249,16 @@ end
 ;+
 ; Initialize the test runner.
 ;
-; :Returns: 
-;    1 for success, 0 for failure
-; 
-; :Keywords: 
-;    filename : in, optional, type=string
-;       if present, output is sent that file, otherwise output is sent to 
-;       `stdout`
-;    color : in, optional, type=boolean
-;       unused for MGutHtmlRunner
-;    _extra : in, optional, type=keywords
-;       keywords to MGutTestRunner::init
+; :Returns:
+;   1 for success, 0 for failure
+;
+; :Keywords:
+;   filename : in, optional, type=string
+;     if present, output is sent that file, otherwise output is sent to `stdout`
+;   color : in, optional, type=boolean
+;     unused for MGutHtmlRunner
+;   _extra : in, optional, type=keywords
+;     keywords to `MGutTestRunner::init`
 ;-
 function mguthtmlrunner::init, filename=filename, color=color, _extra=e
   compile_opt strictarr
@@ -260,7 +270,7 @@ function mguthtmlrunner::init, filename=filename, color=color, _extra=e
     dir = file_dirname(filename)
     if (~file_test(dir)) then file_mkdir, dir
   endif
-  
+
   ; setup the LUN for the output
   if (n_elements(filename) gt 0) then begin
     openw, lun, filename, /get_lun
@@ -272,7 +282,7 @@ function mguthtmlrunner::init, filename=filename, color=color, _extra=e
   self->_print, self.lun, '<html><head>'
   self->_print, self.lun, '<title>Test results</title>'
   self->_print, self.lun, '<style type="text/css" media="all">'
-  
+
   styleFilename = mg_src_root() + 'style.css'
   styles = strarr(file_lines(styleFilename))
   openr, styleLun, styleFilename, /get_lun
@@ -290,8 +300,8 @@ end
 ; Define member variables.
 ;
 ; :Fields:
-;    lun 
-;       the logical unit number to send output to (-1L by default)
+;   lun
+;     the logical unit number to send output to (-1L by default)
 ;-
 pro mguthtmlrunner__define
   compile_opt strictarr

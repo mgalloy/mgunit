@@ -12,16 +12,16 @@
 ; Report a test suite has begun.
 ;
 ; :Params:
-;    testsuite : in, required, type=string
-;       name of test suite
+;   testsuite : in, required, type=string
+;     name of test suite
 ;
 ; :Keywords:
-;    ntestcases : in, required, type=integer
-;       number of test suites/cases contained by the test suite
-;    ntests : in, required, type=integer
-;       number of tests contained in the hierarchy below this test suite
-;    level : in, required, type=level
-;       level of test suite
+;   ntestcases : in, required, type=integer
+;     number of test suites/cases contained by the test suite
+;   ntests : in, required, type=integer
+;     number of tests contained in the hierarchy below this test suite
+;   level : in, required, type=level
+;     level of test suite
 ;-
 pro mgutcompoundrunner::reportTestSuiteStart, testsuite, $
                                               ntestcases=ntestcases, $
@@ -41,25 +41,30 @@ end
 ; Report the results of a test suite.
 ;
 ; :Keywords:
-;    npass : in, required, type=integer
-;       number of passing tests contained in the hierarchy below the test
-;       suite
-;    nfail : in, required, type=integer
-;       number of failing tests contained in the hierarchy below the test
-;       suite
-;    nskip : in, required, type=integer
-;       number of skipped tests contained in the hierarchy below the test
-;       suite
-;    level : in, required, type=integer
-;       level of test suite
+;   npass : in, required, type=integer
+;     number of passing tests contained in the hierarchy below the test suite
+;   nfail : in, required, type=integer
+;     number of failing tests contained in the hierarchy below the test suite
+;   nskip : in, required, type=integer
+;     number of skipped tests contained in the hierarchy below the test suite
+;   level : in, required, type=integer
+;     level of test suite
+;   total_nlines : in, required, type=long
+;     total number of lines in testing routines
+;   covered_nlines : in, required, type=long
+;     number of lines covered in testing routines
 ;-
 pro mgutcompoundrunner::reportTestSuiteResult, npass=npass, nfail=nfail, $
-                                               nskip=nskip, level=level
+                                               nskip=nskip, level=level, $
+                                               total_nlines=total_nlines, $
+                                               covered_nlines=covered_nlines
   compile_opt strictarr
 
   for i = 0L, self->count() - 1L do begin
     r = self->get(position=i)
-    r->reportTestSuiteResult, npass=npass, nfail=nfail, nskip=nskip, level=level
+    r->reportTestSuiteResult, npass=npass, nfail=nfail, nskip=nskip, level=level, $
+                              total_nlines=total_nlines, $
+                              covered_nlines=covered_nlines
   endfor
 end
 
@@ -68,14 +73,14 @@ end
 ; Report a test case has begun.
 ;
 ; :Params:
-;    testcase : in, required, type=string
-;       name of test case
+;   testcase : in, required, type=string
+;     name of test case
 ;
 ; :Keywords:
-;    ntests : in, required, type=integer
-;       number of tests contained in this test case
-;    level : in, required, type=level
-;       level of test case
+;   ntests : in, required, type=integer
+;     number of tests contained in this test case
+;   level : in, required, type=level
+;     level of test case
 ;-
 pro mgutcompoundrunner::reportTestCaseStart, testcase, ntests=ntests, level=level
   compile_opt strictarr
@@ -91,14 +96,14 @@ end
 ; Report the results of a test case.
 ;
 ; :Keywords:
-;    npass : in, required, type=integer
-;       number of passing tests
-;    nfail : in, required, type=integer
-;       number of failing tests
-;    nskip : in, required, type=integer
-;       number of skipped tests
-;    level : in, required, type=integer
-;       level of test case
+;   npass : in, required, type=integer
+;     number of passing tests
+;   nfail : in, required, type=integer
+;     number of failing tests
+;   nskip : in, required, type=integer
+;     number of skipped tests
+;   level : in, required, type=integer
+;     level of test case
 ;-
 pro mgutcompoundrunner::reportTestCaseResult, npass=npass, nfail=nfail, $
                                               nskip=nskip, level=level
@@ -126,6 +131,10 @@ end
 ; :Keywords:
 ;   level : in, required, type=integer
 ;     level of test case
+;   total_nlines : in, required, type=long
+;     total number of lines in testing routines
+;   covered_nlines : in, required, type=long
+;     number of lines covered in testing routines
 ;-
 pro mgutcompoundrunner::reportTestCaseCoverage, covered_routines, tested_routines, $
                                                 level=level, $
@@ -147,12 +156,12 @@ end
 ; Report the start of single test.
 ;
 ; :Params:
-;    testname : in, required, type=string
-;       name of test
+;   testname : in, required, type=string
+;     name of test
 ;
 ; :Keywords:
-;    level : in, required, type=integer
-;       level of test case
+;   level : in, required, type=integer
+;     level of test case
 ;-
 pro mgutcompoundrunner::reportTestStart, testname, level=level
   compile_opt strictarr
@@ -174,6 +183,8 @@ end
 ; :Keywords:
 ;   passed : in, required, type=boolean
 ;     whether the test passed
+;   output : in, optional, type=string
+;     output from the test run
 ;   time : in, required, type=float
 ;     time for the test to run
 ;   level : in, required, type=integer
@@ -196,7 +207,9 @@ pro mgutcompoundrunner::reportTestResult, msg, passed=passed, $
   endfor
 end
 
-     
+
+;= lifecycle methods
+
 ;+
 ; Free resources.
 ;-
@@ -212,12 +225,14 @@ end
 ; Initialize the test runner.
 ;
 ; :Returns:
-;    1 for success, 0 for failure
+;   1 for success, 0 for failure
 ;
 ; :Keywords:
-;    filename : in, optional, type=string
-;       if present, output is sent that file, otherwise output is sent to
-;       `stdout`
+;   filename : in, optional, type=string
+;     if present, output is sent that file, otherwise output is sent to
+;     `stdout`
+;   _extra : in, optional, type=keywords
+;     keywords to `MGutTestRunniner::init`
 ;-
 function mgutcompoundrunner::init, filename=filename, _extra=e
   compile_opt strictarr
@@ -234,7 +249,7 @@ end
 ;-
 pro mgutcompoundrunner__define
   compile_opt strictarr
-  
+
   define = { MGutCompoundRunner, $
              inherits MGutTestRunner, $
              inherits IDL_Container $

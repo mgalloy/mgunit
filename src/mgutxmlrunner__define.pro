@@ -7,20 +7,22 @@
 ; :Private:
 ;-
 
+;= MGutTestRunner interface
+
 ;+
 ; Report a test suite has begun.
 ;
 ; :Params:
-;    testsuite : in, required, type=string
-;       name of test suite
+;   testsuite : in, required, type=string
+;     name of test suite
 ;
 ; :Keywords:
-;    ntestcases : in, required, type=integer
-;       number of test suites/cases contained by the test suite
-;    ntests : in, required, type=integer
-;       number of tests contained in the hierarchy below this test suite
-;    level : in, required, type=integer
-;       level of test suite
+;   ntestcases : in, required, type=integer
+;     number of test suites/cases contained by the test suite
+;   ntests : in, required, type=integer
+;     number of tests contained in the hierarchy below this test suite
+;   level : in, required, type=integer
+;     level of test suite
 ;-
 pro mgutxmlrunner::reportTestSuiteStart, testsuite, $
                                          ntestcases=ntestcases, $
@@ -38,20 +40,23 @@ end
 ; Report the results of a test suite.
 ;
 ; :Keywords:
-;    npass : in, required, type=integer
-;       number of passing tests contained in the hierarchy below the test
-;       suite
-;    nfail : in, required, type=integer
-;       number of failing tests contained in the hierarchy below the test
-;       suite
-;    nskip : in, required, type=integer
-;       number of skipped tests contained in the hierarchy below the test
-;       suite
-;    level : in, required, type=integer
-;       level of test suite
+;   npass : in, required, type=integer
+;     number of passing tests contained in the hierarchy below the test suite
+;   nfail : in, required, type=integer
+;     number of failing tests contained in the hierarchy below the test suite
+;   nskip : in, required, type=integer
+;     number of skipped tests contained in the hierarchy below the test suite
+;   level : in, required, type=integer
+;     level of test suite
+;   total_nlines : in, required, type=long
+;     total number of lines in testing routines
+;   covered_nlines : in, required, type=long
+;     number of lines covered in testing routines
 ;-
 pro mgutxmlrunner::reportTestSuiteResult, npass=npass, nfail=nfail, $
-                                          nskip=nskip, level=level
+                                          nskip=nskip, level=level, $
+                                          total_nlines=total_nlines, $
+                                          covered_nlines=covered_nlines
   compile_opt strictarr
 
   indent = level eq 0L ? '' : string(bytarr(2 * level) + 32B)
@@ -62,16 +67,16 @@ end
 
 ;+
 ; Report a test case has begun.
-; 
+;
 ; :Params:
-;    testcase : in, required, type=string
-;       name of test case
+;   testcase : in, required, type=string
+;     name of test case
 ;
 ; :Keywords:
-;    ntests : in, required, type=integer
-;       number of tests contained in this test case
-;    level : in, required, type=integer
-;       level of test case
+;   ntests : in, required, type=integer
+;     number of tests contained in this test case
+;   level : in, required, type=integer
+;     level of test case
 ;-
 pro mgutxmlrunner::reportTestCaseStart, testcase, ntests=ntests, level=level
   compile_opt strictarr
@@ -86,14 +91,14 @@ end
 ; Report the results of a test case.
 ;
 ; :Keywords:
-;    npass : in, required, type=integer
-;       number of passing tests
-;    nfail : in, required, type=integer
-;       number of failing tests
-;    nskip : in, required, type=integer
-;       number of skipped tests
-;    level : in, required, type=integer
-;       level of test case
+;   npass : in, required, type=integer
+;     number of passing tests
+;   nfail : in, required, type=integer
+;     number of failing tests
+;   nskip : in, required, type=integer
+;     number of skipped tests
+;   level : in, required, type=integer
+;     level of test case
 ;-
 pro mgutxmlrunner::reportTestCaseResult, npass=npass, nfail=nfail, $
                                          nskip=nskip, level=level
@@ -107,14 +112,14 @@ end
 
 ;+
 ; Report the start of single test.
-; 
+;
 ; :Params:
-;    testname : in, required, type=string
-;       name of test
+;   testname : in, required, type=string
+;     name of test
 ;
 ; :Keywords:
-;    level : in, required, type=integer
-;       level of test case
+;   level : in, required, type=integer
+;     level of test case
 ;-
 pro mgutxmlrunner::reportTestStart, testname, level=level
   compile_opt strictarr
@@ -165,7 +170,7 @@ pro mgutxmlrunner::reportTestResult, msg, passed=passed, $
     end
     else:
   endcase
-  
+
   self->_print, self.lun, string(indent, format='(%"%s  </test>")')
 end
 
@@ -185,6 +190,10 @@ end
 ; :Keywords:
 ;   level : in, required, type=integer
 ;     level of test case
+;   total_nlines : in, required, type=long
+;     total number of lines in testing routines
+;   covered_nlines : in, required, type=long
+;     number of lines covered in testing routines
 ;-
 pro mgutxmlrunner::reportTestCaseCoverage, covered_routines, tested_routines, $
                                            level=level, $
@@ -196,18 +205,20 @@ pro mgutxmlrunner::reportTestCaseCoverage, covered_routines, tested_routines, $
 end
 
 
+;= helper methods
+
 ;+
 ; Prints a message to a LUN.
 ;
 ; :Params:
-;    lun : in, required, type=long
-;       logical unit number to print to
-;    text : in, required, type=string
-;       text to print
+;   lun : in, required, type=long
+;     logical unit number to print to
+;   text : in, required, type=string
+;     text to print
 ;
 ; :Keywords:
-;    _extra : in, optional, type=keywords
-;       keywords to `MG_ANSICODE`, i.e., `RED` or `GREEN`
+;   _extra : in, optional, type=keywords
+;     keywords to `MG_ANSICODE`, i.e., `RED` or `GREEN`
 ;-
 pro mgutxmlrunner::_print, lun, text, _extra=e
   compile_opt strictarr
@@ -216,6 +227,8 @@ pro mgutxmlrunner::_print, lun, text, _extra=e
   if (lun gt 0L) then flush, lun
 end
 
+
+;= lifecycle methods
 
 ;+
 ; Free resources.
@@ -232,16 +245,16 @@ end
 ; Initialize the test runner.
 ;
 ; :Returns:
-;    1 for success, 0 for failure
-; 
+;   1 for success, 0 for failure
+;
 ; :Keywords:
-;    filename : in, optional, type=string
-;       if present, output is sent that file, otherwise output is sent to
-;       `stdout`
-;    color : in, optional, type=boolean
-;       unused for `MGutXMLRunner`
-;    _extra : in, optional, type=keywords
-;       keywords to `MGutTestRunner::init`
+;   filename : in, optional, type=string
+;     if present, output is sent that file, otherwise output is sent to
+;     `stdout`
+;   color : in, optional, type=boolean
+;     unused
+;   _extra : in, optional, type=keywords
+;     keywords to `MGutTestRunner::init`
 ;-
 function mgutxmlrunner::init, filename=filename, color=color, _extra=e
   compile_opt strictarr
@@ -270,8 +283,8 @@ end
 ; Define member variables.
 ;
 ; :Fields:
-;    lun
-;       the logical unit number to send output to (`-1L` by default)
+;   lun
+;     the logical unit number to send output to (`-1L` by default)
 ;-
 pro mgutxmlrunner__define
   compile_opt strictarr

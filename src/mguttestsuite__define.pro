@@ -7,49 +7,55 @@
 ;
 ; For example, it is typical do create a test suite like the following::
 ;
-;    function mytestsuite_uts::init, _extra=e
-;      compile_opt strictarr
+;   function mytestsuite_uts::init, _extra=e
+;     compile_opt strictarr
 ;
-;      if (~self->MGutTestSuite::init(_strict_extra=e)) then return, 0
+;     if (~self->MGutTestSuite::init(_strict_extra=e)) then return, 0
 ;
-;      self->add, /all
+;     self->add, /all
 ;
-;      return, 1
-;    end
+;     return, 1
+;   end
 ;
-;    pro mytestsuite_uts__define
-;      compile_opt strictarr
+;   pro mytestsuite_uts__define
+;     compile_opt strictarr
 ;
-;      define = { MyTestSuite_uts, inherits MGutTestSuite }
-;    end
+;     define = { MyTestSuite_uts, inherits MGutTestSuite }
+;   end
 ;
 ; This test will add all the files in the current directory that end in
 ; "_ut__define.pro" as test cases. Then the following will run all the test
 ; cases in a directory::
 ;
-;    IDL> mgunit, 'mytestsuite_uts'
+;   IDL> mgunit, 'mytestsuite_uts'
 ;
 ; :Properties:
-;    home : type=string
-;       location of the root of the test suite
-;    failures_only : type=boolean
-;       set to report only failed tests
-;    name : type=string
-;       name of the object
-;    npass : type=integer
-;       number of passing tests contained in the hierarchy below this object
-;    nfail : type=integer
-;       number of failing tests contained in the hierarchy below this object
-;    nskip : type=integer
+;   home : type=string
+;     location of the root of the test suite
+;   failures_only : type=boolean
+;     set to report only failed tests
+;   name : type=string
+;     name of the object
+;   npass : type=integer
+;     number of passing tests contained in the hierarchy below this object
+;   nfail : type=integer
+;     number of failing tests contained in the hierarchy below this object
+;   nskip : type=integer
 ;       number of skipped tests contained in the hierarchy below this object
-;    ntestcases : type=integer
-;       number of directly contained test suites or test cases
-;    ntests : type=integer
-;       number of tests contained in the hierarchy below this object
-;    test_runner : in, required, type=object
-;       subclass of `MGtestRunner`
+;   ntestcases : type=integer
+;     number of directly contained test suites or test cases
+;   ntests : type=integer
+;     number of tests contained in the hierarchy below this object
+;   test_runner : in, required, type=object
+;     subclass of `MGtestRunner`
+;   total_nlines : type=long
+;     total number of lines in testing routines
+;   covered_nlines : type=long
+;     number of tested lines in testing routines
 ;-
 
+
+;= running the test suite
 
 ;+
 ; Recompile the class definition before creating the object to make sure it is
@@ -58,8 +64,8 @@
 ; :Private:
 ;
 ; :Params:
-;    classname : in, required, type=string
-;       classname of class to recompile
+;   classname : in, required, type=string
+;     classname of class to recompile
 ;-
 pro mguttestsuite::_recompile, classname
   compile_opt strictarr
@@ -82,19 +88,19 @@ end
 ; :Private:
 ;
 ; :Returns:
-;    object
+;   object
 ;
 ; :Params:
-;    testName : in, required, type=string
-;       classname of test case or test suite to create
+;   testname : in, required, type=string
+;     classname of test case or test suite to create
 ;
 ; :Keywords:
-;    error : out, optional, type=boolean
-;       0 if no error and 1 if an error
-;    _extra : in, optional, type=keywords
-;       keywords to `OBJ_NEW` for test cases and test suites
+;   error : out, optional, type=boolean
+;     0 if no error and 1 if an error
+;   _extra : in, optional, type=keywords
+;     keywords to `OBJ_NEW` for test cases and test suites
 ;-
-function mguttestsuite::_makeTestCase, testName, error=error, _extra=e
+function mguttestsuite::_makeTestCase, testname, error=error, _extra=e
   compile_opt strictarr
 
   error = 0L
@@ -151,11 +157,13 @@ pro mguttestsuite::display
     otestcase = self.testcases->get(position=t)
     otestcase->display
   endfor
-  
+
   self.testRunner->reportTestSuiteResult, npass=self.npass, $
                                           nfail=self.nfail, $
                                           nskip=self.nskip, $
-                                          level=self.level  
+                                          level=self.level, $
+                                          total_nlines=self.total_nlines, $
+                                          covered_nlines=self.covered_nlines
 end
 
 
@@ -185,33 +193,42 @@ pro mguttestsuite::run
     otestcase->run
 
     ; accumulate results
-    otestcase->getProperty, npass=npass, nfail=nfail, nskip=nskip
+    otestcase->getProperty, npass=npass, nfail=nfail, nskip=nskip, $
+                            total_nlines=total_nlines, $
+                            covered_nlines=covered_nlines
+
     self.npass += npass
     self.nfail += nfail
     self.nskip += nskip
+    self.total_nlines += total_nlines
+    self.covered_nlines += covered_nlines
   endfor
 
   if (~self.failuresOnly) then begin
     self.testRunner->reportTestSuiteResult, npass=self.npass, $
                                             nfail=self.nfail, $
                                             nskip=self.nskip, $
-                                            level=self.level
+                                            level=self.level, $
+                                            total_nlines=self.total_nlines, $
+                                            covered_nlines=self.covered_nlines
   endif
 end
 
+
+;= configure test suite
 
 ;+
 ; Add a scalar or array of test suites or test cases.
 ;
 ; :Params:
-;    tests : in, required, type=strarr
-;       classnames of test suites or test cases
+;   tests : in, required, type=strarr
+;     classnames of test suites or test cases
 ;
 ; :Keywords:
-;    all : in, optional, type=boolean
-;       set to add all the files in the current directory that end in
-;       "_ut__define.pro" (the current directory is defined to be the
-;       directory where the method calling this method is located)
+;   all : in, optional, type=boolean
+;     set to add all the files in the current directory that end in
+;     "_ut__define.pro" (the current directory is defined to be the
+;     directory where the method calling this method is located)
 ;-
 pro mguttestsuite::add, tests, all=all
   compile_opt strictarr
@@ -272,7 +289,7 @@ pro mguttestsuite::add, tests, all=all
         classname = strmid(tests[t], 0, dotpos)
         methodname = strmid(tests[t], dotpos + 1L)
       endelse
-      
+
       ; don't add yourself to yourself
       if (classname eq self.name) then continue
 
@@ -295,18 +312,45 @@ end
 
 
 ;+
+; Test suites can contain other test suites or test cases. The level is the
+; number of layers down from the top most test suite (level 0).
+;
+; :Private:
+;
+; :Params:
+;   level : in, required, type=integer
+;     new level of object
+;-
+pro mguttestsuite::setLevel, level
+  compile_opt strictarr
+
+  self.level = level
+  for t = 0L, self.testcases->count() - 1L do begin
+    testcase = self.testcases->get(position=t)
+    testcase->setLevel, level + 1
+  endfor
+end
+
+
+;= property access
+
+;+
 ; Get properties of the object.
 ;-
 pro mguttestsuite::getProperty, name=name, $
                                 npass=npass, nfail=nfail, nskip=nskip, $
-                                ntestcases=ntestcases, ntests=ntests
+                                ntestcases=ntestcases, ntests=ntests, $
+                                total_nlines=total_nlines, $
+                                covered_nlines=covered_nlines
   compile_opt strictarr
 
   name = self.name
   npass = self.npass
   nfail = self.nfail
   nskip = self.nskip
-  
+  total_nlines = self.total_nlines
+  covered_nlines = self.covered_nlines
+
   if (arg_present(ntestcases)) then ntestcases = self.testcases->count()
 
   if (arg_present(ntests)) then begin
@@ -321,26 +365,7 @@ pro mguttestsuite::getProperty, name=name, $
 end
 
 
-;+
-; Test suites can contain other test suites or test cases. The level is the
-; number of layers down from the top most test suite (level 0).
-;
-; :Private:
-;
-; :Params:
-;    level : in, required, type=integer
-;       new level of object
-;-
-pro mguttestsuite::setLevel, level
-  compile_opt strictarr
-
-  self.level = level
-  for t = 0L, self.testcases->count() - 1L do begin
-    testcase = self.testcases->get(position=t)
-    testcase->setLevel, level + 1
-  endfor
-end
-
+;= lifecycle methods
 
 ;+
 ; Free resources.
@@ -356,17 +381,21 @@ end
 ; Initialize test suite.
 ;
 ; :Returns:
-;    1 for success, 0 for failure
+;   1 for success, 0 for failure
 ;
 ; :Keywords:
-;    name : in, optional, type=string, default=classname
-;       name of the test suite
-;    home : in, optional, type=string, default=''
-;       location of the root of the test suite
-
-
+;   name : in, optional, type=string, default=classname
+;     name of the test suite
+;   home : in, optional, type=string, default=''
+;     location of the root of the test suite
+;   test_runner : in, required, type=object
+;     subclass of `MGutTestRunner`
+;   failures_only : in, optional, type=boolean
+;     set to report only failed tests
 ;-
-function mguttestsuite::init, name=name, home=home, test_runner=testRunner, $
+function mguttestsuite::init, name=name, $
+                              home=home, $
+                              test_runner=testRunner, $
                               failures_only=failuresOnly
   compile_opt strictarr
 
@@ -387,7 +416,7 @@ function mguttestsuite::init, name=name, home=home, test_runner=testRunner, $
 
   self.testRunner = testRunner
   self.failuresOnly = keyword_set(failuresOnly)
-  
+
   self.testcases = obj_new('IDL_Container')
 
   return, 1B
@@ -398,28 +427,25 @@ end
 ; Define member variables.
 ;
 ; :Fields:
-;    name
-;       name of the object
-;    home
-;       directory (with trailing slash) containing the source code for this
-;       test suite
-;    level
-;       number of layers below the top-most containing test suite
-;    testcases
-;       `IDL_Container` holding test suites or test cases
-;    testRunner
-;       subclass of `MGutTestRunner`
-;    npass
-;       number of passing tests contained in the hierarchy below this test
-;       suite
-;    nfail
-;       number of failing tests contained in the hierarchy below this test
-;       suite
-;    nskip
-;       number of skipped tests contained in the hierarchy below this test
-;       suite
-;    failuresOnly
-;       flag to indicate only failed tests should be reported
+;   name
+;     name of the object
+;   home
+;     directory (with trailing slash) containing the source code for this test
+;     suite
+;   level
+;     number of layers below the top-most containing test suite
+;   testcases
+;     `IDL_Container` holding test suites or test cases
+;   testRunner
+;     subclass of `MGutTestRunner`
+;   npass
+;     number of passing tests contained in the hierarchy below this test suite
+;   nfail
+;     number of failing tests contained in the hierarchy below this test suite
+;   nskip
+;     number of skipped tests contained in the hierarchy below this test suite
+;   failuresOnly
+;     flag to indicate only failed tests should be reported
 ;-
 pro mguttestsuite__define
   compile_opt strictarr
@@ -430,6 +456,8 @@ pro mguttestsuite__define
              level: 0L, $
              testcases: obj_new(), $
              testRunner: obj_new(), $
+             total_nlines: 0L, $
+             covered_nlines: 0L, $
              npass: 0L, $
              nfail: 0L, $
              nskip: 0L, $

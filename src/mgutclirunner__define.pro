@@ -8,20 +8,23 @@
 ; :Private:
 ;-
 
+
+;= MGutTestRunner interface
+
 ;+
 ; Report a test suite has begun.
 ;
 ; :Params:
-;    testsuite : in, required, type=string
-;       name of test suite
+;   testsuite : in, required, type=string
+;     name of test suite
 ;
 ; :Keywords:
-;    ntestcases : in, required, type=integer
-;       number of test suites/cases contained by the test suite
-;    ntests : in, required, type=integer
-;       number of tests contained in the hierarchy below this test suite
-;    level : in, required, type=level
-;       level of test suite
+;   ntestcases : in, required, type=integer
+;     number of test suites/cases contained by the test suite
+;   ntests : in, required, type=integer
+;     number of tests contained in the hierarchy below this test suite
+;   level : in, required, type=level
+;     level of test suite
 ;-
 pro mgutclirunner::reportTestSuiteStart, testsuite, $
                                          ntestcases=ntestcases, $
@@ -48,26 +51,40 @@ end
 ; Report the results of a test suite.
 ;
 ; :Keywords:
-;    npass : in, required, type=integer
-;       number of passing tests contained in the hierarchy below the test
-;       suite
-;    nfail : in, required, type=integer
-;       number of failing tests contained in the hierarchy below the test
-;       suite
-;    nskip : in, required, type=integer
-;       number of skipped tests contained in the hierarchy below the test
-;       suite
-;    level : in, required, type=integer
-;       level of test suite
+;   npass : in, required, type=integer
+;     number of passing tests contained in the hierarchy below the test suite
+;   nfail : in, required, type=integer
+;     number of failing tests contained in the hierarchy below the test suite
+;   nskip : in, required, type=integer
+;     number of skipped tests contained in the hierarchy below the test suite
+;   level : in, required, type=integer
+;     level of test suite
+;   total_nlines : in, required, type=long
+;     total number of lines in testing routines
+;   covered_nlines : in, required, type=long
+;     number of lines covered in testing routines
 ;-
 pro mgutclirunner::reportTestSuiteResult, npass=npass, nfail=nfail, $
-                                          nskip=nskip, level=level
+                                          nskip=nskip, level=level, $
+                                          total_nlines=total_nlines, $
+                                          covered_nlines=covered_nlines
   compile_opt strictarr
 
-  format = '(%"%sResults: %d / %d tests passed, %d skipped")'
+  coverage = ''
+  if (mg_idlversion(require='8.4')) then begin
+    if (total_nlines eq 0L) then begin
+      coverage = ' (no coverage information)'
+    endif else begin
+      coverage = string(100.0 * covered_nlines / total_nlines, $
+                        format='(%" (%0.1f\% coverage)")')
+      endelse
+  endif
+
+  format = '(%"%sResults: %d / %d tests passed, %d skipped%s")'
   indent = level eq 0 ? '' : string(bytarr(level * self.indent) + self.space)
   self->_print, self.logLun, $
-                string(indent, npass, npass + nfail, nskip, format=format), $
+                string(indent, npass, npass + nfail, nskip, coverage, $
+                       format=format), $
                 /magenta
 end
 
@@ -80,10 +97,10 @@ end
 ;       name of test case
 ;
 ; :Keywords:
-;    ntests : in, required, type=integer
-;       number of tests contained in this test case
-;    level : in, required, type=level
-;       level of test case
+;   ntests : in, required, type=integer
+;     number of tests contained in this test case
+;   level : in, required, type=level
+;     level of test case
 ;-
 pro mgutclirunner::reportTestCaseStart, testcase, ntests=ntests, level=level
   compile_opt strictarr
@@ -101,14 +118,14 @@ end
 ; Report the results of a test case.
 ;
 ; :Keywords:
-;    npass : in, required, type=integer
-;       number of passing tests
-;    nfail : in, required, type=integer
-;       number of failing tests
-;    nskip : in, required, type=integer
-;       number of skipped tests
-;    level : in, required, type=integer
-;       level of test case
+;   npass : in, required, type=integer
+;     number of passing tests
+;   nfail : in, required, type=integer
+;     number of failing tests
+;   nskip : in, required, type=integer
+;     number of skipped tests
+;   level : in, required, type=integer
+;     level of test case
 ;-
 pro mgutclirunner::reportTestCaseResult, npass=npass, nfail=nfail, $
                                          nskip=nskip, level=level
@@ -137,8 +154,13 @@ end
 ; :Keywords:
 ;   level : in, required, type=integer
 ;     level of test case
+;   total_nlines : in, required, type=long
+;     total number of lines in testing routines
+;   covered_nlines : in, required, type=long
+;     number of lines covered in testing routines
 ;-
-pro mgutclirunner::reportTestCaseCoverage, covered_routines, tested_routines, $
+pro mgutclirunner::reportTestCaseCoverage, covered_routines, $
+                                           tested_routines, $
                                            level=level, $
                                            total_nlines=total_nlines, $
                                            covered_nlines=covered_nlines
@@ -150,9 +172,12 @@ pro mgutclirunner::reportTestCaseCoverage, covered_routines, tested_routines, $
                 string(indent, $
                        100.0 * covered_nlines / total_nlines, $
                        format='(%"%sTest coverage: %0.1f\%")')
-  self->_print, self.logLun, $
-                string(indent, single_indent, 'Untested lines', $
-                       format='(%"%s%s%s")')
+  ind = where(tested_routines.untested_lines ne '', n_untested_routines)
+  if (n_untested_routines gt 0L) then begin
+    self->_print, self.logLun, $
+                  string(indent, single_indent, 'Untested lines', $
+                         format='(%"%s%s%s")')
+  endif
   for i = 0L, n_elements(tested_routines) - 1L do begin
     if (tested_routines[i].untested_lines ne '') then begin
       self->_print, self.logLun, $
@@ -182,12 +207,12 @@ end
 ; Report the start of single test.
 ;
 ; :Params:
-;    testname : in, required, type=string
-;       name of test
+;   testname : in, required, type=string
+;     name of test
 ;
 ; :Keywords:
-;    level : in, required, type=integer
-;       level of test case
+;   level : in, required, type=integer
+;     level of test case
 ;-
 pro mgutclirunner::reportTestStart, testname, level=level
   compile_opt strictarr
@@ -255,18 +280,20 @@ pro mgutclirunner::reportTestResult, msg, passed=passed, $
 end
 
 
+;= helper methods
+
 ;+
 ; Prints a message to a LUN.
 ;
 ; :Params:
-;    lun : in, required, type=long
-;       logical unit number to print to
-;    text : in, required, type=string
-;       text to print
+;   lun : in, required, type=long
+;     logical unit number to print to
+;   text : in, required, type=string
+;     text to print
 ;
 ; :Keywords:
-;    _extra : in, optional, type=keywords
-;       keywords to `MG_ANSICODE`, i.e., `RED` or `GREEN`
+;   _extra : in, optional, type=keywords
+;     keywords to `MG_ANSICODE`, i.e., `RED` or `GREEN`
 ;-
 pro mgutclirunner::_print, lun, text, _extra=e
   compile_opt strictarr
@@ -285,7 +312,7 @@ end
 ; Safe method of determining if the current terminal is TTY.
 ;
 ; :Returns:
-;    1 if the terminal is TTY, 0 if not
+;   1 if the terminal is TTY, 0 if not
 ;-
 function mgutclirunner::_findIfTty
   compile_opt strictarr
@@ -299,6 +326,8 @@ function mgutclirunner::_findIfTty
   return, mg_termIsTty()
 end
 
+
+;= lifecycle methods
 
 ;+
 ; Free resources.
@@ -316,14 +345,14 @@ end
 ; Initialize the test runner.
 ;
 ; :Returns:
-;    1 for success, 0 for failure
+;   1 for success, 0 for failure
 ;
 ; :Keywords:
-;    filename : in, optional, type=string
-;       if present, output is sent to that file, otherwise output is sent to
-;       `stdout`
-;    color : in, optional, type=boolean
-;       set to print color output
+;   filename : in, optional, type=string
+;     if present, output is sent to that file, otherwise output is sent to
+;     `stdout`
+;   color : in, optional, type=boolean
+;     set to print color output
 ;-
 function mgutclirunner::init, filename=filename, color=color, _extra=e
   compile_opt strictarr
@@ -334,7 +363,7 @@ function mgutclirunner::init, filename=filename, color=color, _extra=e
     logDir = file_dirname(filename)
     if (~file_test(logDir)) then file_mkdir, logDir
   endif
-  
+
   if (n_elements(filename) gt 0 && strlen(filename) gt 0L) then begin
     openw, logLun, filename, /get_lun
     self.logLun = logLun
@@ -347,7 +376,7 @@ function mgutclirunner::init, filename=filename, color=color, _extra=e
   self.isTty = n_elements(color) gt 0L $
                  ? keyword_set(color) $
                  : (self.logLun lt 0L && self->_findIfTty())
-  
+
   !quiet = 1
   return, 1B
 end
@@ -357,14 +386,14 @@ end
 ; Define member variables.
 ;
 ; :Fields:
-;    logLun
-;       the logical unit number to send output to (-1L by default)
-;    indent
-;       number of spaces a single indent should be
-;    space
-;       byte value of the space character
-;    isTty
-;       whether the `mgunit` believes it is running in a TTY terminal or not
+;   logLun
+;     the logical unit number to send output to (-1L by default)
+;   indent
+;     number of spaces a single indent should be
+;   space
+;     byte value of the space character
+;   isTty
+;     whether the `mgunit` believes it is running in a TTY terminal or not
 ;-
 pro mgutclirunner__define
   compile_opt strictarr

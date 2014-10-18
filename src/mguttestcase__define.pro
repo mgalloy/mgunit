@@ -36,10 +36,16 @@
 ;     number of tests
 ;   testnames : type=strarr
 ;     array of method names which begin with "test"
+;   have_output : bytarr
+;     array of whether tests return output
 ;   math_errors : type=integer
 ;     bitmask of `CHECK_MATH` return values
 ;   testing_routines : type=strarr
 ;     routine names of tested routines
+;   total_nlines : type=long
+;     total number of lines in testing routines
+;   covered_nlines : type=long
+;     number of tested lines in testing routines
 ;-
 
 
@@ -126,21 +132,21 @@ end
 ; :Private:
 ;
 ; :Keywords:
-;    fail : out, optional, type=boolean
-;       set to a named variable to determine if the setup method failed
+;   fail : out, optional, type=boolean
+;     set to a named variable to determine if the setup method failed
 ;-
 pro mguttestcase::_runSetup, fail=fail
   compile_opt strictarr
 
   fail = 0L
-  
+
   catch, error
   if (error ne 0L) then begin
     catch, /cancel
     fail = 1L
     return
   endif
-    
+
   self->setup
 end
 
@@ -151,8 +157,8 @@ end
 ; :Private:
 ;
 ; :Keywords:
-;    fail : out, optional, type=boolean
-;       set to a named variable to determine if the teardown method failed
+;   fail : out, optional, type=boolean
+;     set to a named variable to determine if the teardown method failed
 ;-
 pro mguttestcase::_runTeardown, fail=fail
   compile_opt strictarr
@@ -176,14 +182,14 @@ end
 ; :Private:
 ;
 ; :Params:
-;    msg : in, required, type=string
-;       string to remove prefix from, may be undefined
-;    prefix : in, required, type=string
-;       prefix to remove from msg
+;   msg : in, required, type=string
+;     string to remove prefix from, may be undefined
+;   prefix : in, required, type=string
+;     prefix to remove from msg
 ;-
 pro mguttestcase::_removePrefix, msg, prefix
   compile_opt strictarr
-  
+
   if (n_elements(msg) gt 0 && strpos(msg, prefix) eq 0) then begin
     prefixLength = strlen(prefix)
     msg = strmid(msg, prefixLength)
@@ -227,6 +233,9 @@ end
 ; Create a string from an array of line numbers.
 ;
 ; :Private:
+;
+; :Returns:
+;   string
 ;
 ; :Params:
 ;   lines : in, required, type=long/`lonarr`
@@ -277,7 +286,6 @@ pro mguttestcase::run
                                           ntests=self.ntests, $
                                           level=self.level
   endif
-
 
   ; clear code coverage (only do this if running on IDL 8.4+)
   if (mg_idlversion(require='8.4')) then begin
@@ -340,14 +348,14 @@ pro mguttestcase::run
 
     ; remove ASSERT from msg if present
     self->_removePrefix, msg, 'ASSERT: '
-    
+
     ; construct the log message for the test
     logMsg = (passed && ~self.skipped) $
              ? '' $
              : (n_elements(msg) eq 0 $
                 ? '' $
                 : msg)
-                
+
     (*self.logmsgs)[t] = logMsg
     (*self.passes)[t] = passed
     (*self.skips)[t] = self.skipped
@@ -363,19 +371,19 @@ pro mguttestcase::run
   ; report code coverage (only do this if running on IDL 8.4+)
   if (mg_idlversion(require='8.4')) then begin
     covered_routines = !null
-    total_nlines = 0L
-    covered_nlines = 0L
+    self.total_nlines = 0L
+    self.covered_nlines = 0L
     for i = 0L, n_elements(*self.testing_routines) - 1L do begin
       r = (*self.testing_routines)[i]
       untested_lines = code_coverage(r.name, $
                                      function=r.is_function, nlines=nlines)
-      total_nlines += nlines
-      
+      self.total_nlines += nlines
+
       if (size(untested_lines, /n_dimensions) eq 0) then begin
         covered_routines = [covered_routines, r.name]
-        covered_nlines += nlines
+        self.covered_nlines += nlines
       endif else begin
-        covered_nlines += nlines - n_elements(untested_lines)
+        self.covered_nlines += nlines - n_elements(untested_lines)
       endelse
       r.untested_lines = self->_combineLines(untested_lines)
       (*self.testing_routines)[i] = r
@@ -384,11 +392,10 @@ pro mguttestcase::run
       self.testRunner->reportTestCaseCoverage, covered_routines, $
                                                *self.testing_routines, $
                                                level=self.level, $
-                                               total_nlines=total_nlines, $
-                                               covered_nlines=covered_nlines
+                                               total_nlines=self.total_nlines, $
+                                               covered_nlines=self.covered_nlines
     endif
   endif
-
 
   if (~self.failuresOnly) then begin
     self.testRunner->reportTestCaseResult, npass=self.npass, $
@@ -418,6 +425,20 @@ end
 ; "test") for a given class name.
 ;
 ; :Private:
+;
+; :Returns:
+;   `strarr`
+;
+; :Params:
+;   classname : in, required, type=string
+;     unit test classname
+;
+; :Keywords:
+;   ntests : out, optional, type=long
+;     set to a named variable to return the number of test methods found
+;   have_output : out, optional, type=`bytarr`
+;     set to a named variable to return whether the corresponding methods from
+;     the returned string array return output
 ;-
 function mguttestcase::findTestnamesForClass, classname, $
                                               ntests=ntests, $
@@ -506,6 +527,17 @@ pro mguttestcase::setLevel, level
 end
 
 
+;+
+; Add names of routines that are tested by a test case.
+;
+; :Params:
+;   routine : in, required, type=string/`strarr`
+;     name of routine(s) that this test case is testing
+;
+; :Keywords:
+;   is_function : in, optional, type=boolean
+;     set to indicate that `routine` contains function name(s)
+;-
 pro mguttestcase::addTestingRoutine, routine, is_function=is_function
   compile_opt strictarr
 
@@ -527,7 +559,9 @@ end
 pro mguttestcase::getProperty, npass=npass, nfail=nfail, nskip=nskip, $
                                ntests=ntests, testnames=testnames, $
                                have_output=have_output, math_errors=math_errors, $
-                               testing_routines=testing_routines
+                               testing_routines=testing_routines, $
+                               total_nlines=total_nlines, $
+                               covered_nlines=covered_nlines
   compile_opt strictarr
 
   npass = self.npass
@@ -535,6 +569,8 @@ pro mguttestcase::getProperty, npass=npass, nfail=nfail, nskip=nskip, $
   nskip = self.nskip
   ntests = self.ntests
   math_errors = self.math_errors
+  total_nlines = self.total_nlines
+  covered_nlines = self.covered_nlines
 
   if (arg_present(testnames)) then testnames = *self.testnames
   if (arg_present(have_output)) then have_output = *self.have_output
@@ -648,6 +684,8 @@ pro mguttestcase__define
              passes: ptr_new(), $
              skips: ptr_new(), $
              testing_routines: ptr_new(), $
+             total_nlines: 0L, $
+             covered_nlines: 0L, $
              level: 0L, $
              ntests: 0L, $
              npass: 0L, $

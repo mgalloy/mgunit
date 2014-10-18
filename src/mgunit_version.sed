@@ -5,11 +5,11 @@
 ; process to edit the contents of the version and revision variables below.
 ;
 ; :Returns:
-;    string
+;   string
 ;
 ; :Keywords:
-;    full : in, optional, type=boolean
-;       set to return git revision as well
+;   full : in, optional, type=boolean
+;     set to return git revision as well
 ;-
 function mgunit_version, full=full
   compile_opt strictarr, hidden
