@@ -27,6 +27,7 @@
 .compile mg_options__define
 .compile mg_updater
 .compile mg_responsecode_message
+.compile mg_resolve_routine
 
 ; compile any system routines that are used in the required code
 resolve_all, /quiet, /continue_on_error
