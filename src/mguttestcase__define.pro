@@ -291,10 +291,18 @@ pro mguttestcase::run
   if (mg_idlversion(require='8.4')) then begin
     for i = 0L, n_elements(*self.testing_routines) - 1L do begin
       r = (*self.testing_routines)[i]
-      resolve_routine, r.name, is_function=r.is_function
-      dummy = code_coverage(r.name, $
-                            function=r.is_function, $
-                            /clear)
+      mg_resolve_routine, r.name, is_function=r.is_function, $
+                          resolved=resolved
+      if (~resolved) then begin
+        printf, -2, r.name, r.is_function ? 'function' : 'procedure', $
+                format='(%"could not resolve %s (%s)")'
+      endif else begin
+        r.resolved = 1B
+        (*self.testing_routines)[i] = r
+        dummy = code_coverage(r.name, $
+                              function=r.is_function, $
+                              /clear)
+      endelse
     endfor
   endif
 
@@ -375,18 +383,19 @@ pro mguttestcase::run
     self.covered_nlines = 0L
     for i = 0L, n_elements(*self.testing_routines) - 1L do begin
       r = (*self.testing_routines)[i]
-      untested_lines = code_coverage(r.name, $
-                                     function=r.is_function, nlines=nlines)
-      self.total_nlines += nlines
-
-      if (size(untested_lines, /n_dimensions) eq 0) then begin
-        covered_routines = [covered_routines, r.name]
-        self.covered_nlines += nlines
-      endif else begin
-        self.covered_nlines += nlines - n_elements(untested_lines)
-      endelse
-      r.untested_lines = self->_combineLines(untested_lines)
-      (*self.testing_routines)[i] = r
+      if (r.resolved) then begin
+        untested_lines = code_coverage(r.name, $
+                                       function=r.is_function, nlines=nlines)
+        self.total_nlines += nlines
+        if (size(untested_lines, /n_dimensions) eq 0) then begin
+          covered_routines = [covered_routines, r.name]
+          self.covered_nlines += nlines
+        endif else begin
+          self.covered_nlines += nlines - n_elements(untested_lines)
+        endelse
+        r.untested_lines = self->_combineLines(untested_lines)
+        (*self.testing_routines)[i] = r
+      endif
     endfor
     if (n_elements(*self.testing_routines) gt 0L) then begin
       self.testRunner->reportTestCaseCoverage, covered_routines, $
@@ -543,9 +552,9 @@ pro mguttestcase::addTestingRoutine, routine, is_function=is_function
 
   for i = 0L, n_elements(routine) - 1L do begin
     if (n_elements(*self.testing_routines) eq 0L) then begin
-      *self.testing_routines = { name: routine[i], is_function: keyword_set(is_function), untested_lines: '' }
+      *self.testing_routines = { name: routine[i], is_function: keyword_set(is_function), untested_lines: '', resolved: 0B }
     endif else begin
-      *self.testing_routines = [*self.testing_routines, { name: routine[i], is_function: keyword_set(is_function), untested_lines: '' }]
+      *self.testing_routines = [*self.testing_routines, { name: routine[i], is_function: keyword_set(is_function), untested_lines: '', resolved: 0B }]
     endelse
   endfor
 end
