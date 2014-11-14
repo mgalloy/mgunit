@@ -12,3 +12,4 @@
 .compile mg_ansicode
 .compile mg_src_root
 .compile mg_options__define
+.compile mg_idlversion
