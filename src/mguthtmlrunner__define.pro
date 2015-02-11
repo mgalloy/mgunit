@@ -60,11 +60,14 @@ end
 ;     total number of lines in testing routines
 ;   covered_nlines : in, required, type=long
 ;     number of lines covered in testing routines
+;   testing_routines : in, required, type=array
+;     array of testing routines defined at the suite level
 ;-
 pro mguthtmlrunner::reportTestSuiteResult, npass=npass, nfail=nfail, $
                                            nskip=nskip, level=level, $
                                            total_nlines=total_nlines, $
-                                           covered_nlines=covered_nlines
+                                           covered_nlines=covered_nlines, $
+                                           testing_routines=testing_routines
   compile_opt strictarr
 
   format = '(%"<span class=\"results\">Results: %d / %d tests passed, %d skipped</span></ul>")'

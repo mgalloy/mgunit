@@ -53,18 +53,22 @@ end
 ;     total number of lines in testing routines
 ;   covered_nlines : in, required, type=long
 ;     number of lines covered in testing routines
+;   testing_routines : in, required, type=array
+;     array of testing routines defined at the suite level
 ;-
 pro mgutcompoundrunner::reportTestSuiteResult, npass=npass, nfail=nfail, $
                                                nskip=nskip, level=level, $
                                                total_nlines=total_nlines, $
-                                               covered_nlines=covered_nlines
+                                               covered_nlines=covered_nlines, $
+                                               testing_routines=testing_routines
   compile_opt strictarr
 
   for i = 0L, self->count() - 1L do begin
     r = self->get(position=i)
     r->reportTestSuiteResult, npass=npass, nfail=nfail, nskip=nskip, level=level, $
                               total_nlines=total_nlines, $
-                              covered_nlines=covered_nlines
+                              covered_nlines=covered_nlines, $
+                              testing_routines=testing_routines
   endfor
 end
 

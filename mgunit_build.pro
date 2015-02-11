@@ -18,6 +18,7 @@
 .compile mgunit
 .compile mguttestrunner__define
 .compile mgutcompoundrunner__define.pro
+.compile mgutcoberturarunner__define.pro
 
 .compile mg_cmp_version
 .compile mg_idlversion

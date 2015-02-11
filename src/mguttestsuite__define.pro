@@ -180,11 +180,30 @@ pro mguttestsuite::run
   self.nskip = 0L
   
   if (~self.failuresOnly) then begin
-    self->getProperty, name=name, ntestcases=ntestcases, ntests=ntests
+    self->getProperty, name=name, ntestcases=ntestcases, ntests=ntests, testing_routines=testing_routines
     self.testRunner->reportTestSuiteStart, name, $
                                            ntestcases=ntestcases, $
                                            ntests=ntests, $
                                            level=self.level
+  endif
+
+  if (mg_idlversion(require='8.4')) then begin
+    ; clear code coverage results from a previous run
+    for i = 0L, n_elements(*self.testing_routines) - 1L do begin
+      r = (*self.testing_routines)[i]
+      mg_resolve_routine, r.name, is_function=r.is_function, $
+        resolved=resolved
+      if (~resolved) then begin
+        printf, -2, r.name, r.is_function ? 'function' : 'procedure', $
+          format='(%"could not resolve %s (%s)")'
+      endif else begin
+        r.resolved = 1B
+        (*self.testing_routines)[i] = r
+        dummy = code_coverage(r.name, $
+          function=r.is_function, $
+          /clear)
+      endelse
+    endfor
   endif
 
   ntestcases = self.testcases->count()
@@ -205,12 +224,14 @@ pro mguttestsuite::run
   endfor
 
   if (~self.failuresOnly) then begin
+    self->getProperty, testing_routines=testing_routines
     self.testRunner->reportTestSuiteResult, npass=self.npass, $
                                             nfail=self.nfail, $
                                             nskip=self.nskip, $
                                             level=self.level, $
                                             total_nlines=self.total_nlines, $
-                                            covered_nlines=self.covered_nlines
+                                            covered_nlines=self.covered_nlines, $
+                                            testing_routines=testing_routines
   endif
 end
 
@@ -341,7 +362,8 @@ pro mguttestsuite::getProperty, name=name, $
                                 npass=npass, nfail=nfail, nskip=nskip, $
                                 ntestcases=ntestcases, ntests=ntests, $
                                 total_nlines=total_nlines, $
-                                covered_nlines=covered_nlines
+                                covered_nlines=covered_nlines, $
+                                testing_routines=testing_routines
   compile_opt strictarr
 
   name = self.name
@@ -350,6 +372,7 @@ pro mguttestsuite::getProperty, name=name, $
   nskip = self.nskip
   total_nlines = self.total_nlines
   covered_nlines = self.covered_nlines
+  testing_routines = *self.testing_routines
 
   if (arg_present(ntestcases)) then ntestcases = self.testcases->count()
 
@@ -374,6 +397,7 @@ pro mguttestsuite::cleanup
   compile_opt strictarr
 
   obj_destroy, self.testcases
+  ptr_free, self.testing_routines
 end
 
 
@@ -418,10 +442,107 @@ function mguttestsuite::init, name=name, $
   self.failuresOnly = keyword_set(failuresOnly)
 
   self.testcases = obj_new('IDL_Container')
+  self.testing_routines = ptr_new(/allocate_heap)
 
   return, 1B
 end
 
+;+
+; Add names of routines that are tested by a test suite.
+;
+; :Params:
+;   routine : in, required, type=string/`strarr`
+;     name of routine(s) that this test suite is testing
+;
+; :Keywords:
+;   file_path : in, optional, type=string/`strarr`
+;     contains the path to the source file for each element of routine.
+;     If not specified, this information is determined by calling routine_info
+;     on each routine using the is_function flag.
+;   is_function : in, optional, type=boolean
+;     set to indicate that `routine` contains function name(s)
+;-
+pro mguttestsuite::addTestingRoutine, routine, file_path=file_path, is_function=is_function
+  compile_opt strictarr
+
+  for i = 0L, n_elements(routine) - 1L do begin
+    if n_elements(file_path)-1 ge i then begin
+      fpath = file_path[i]
+    endif else begin
+      info = routine_info(routine[i], /source, functions=is_function)
+      if n_elements(info) eq 0 then continue
+      fpath = info[0].path
+    endelse
+    if (n_elements(*self.testing_routines) eq 0L) then begin
+      *self.testing_routines = { name: routine[i], is_function: keyword_set(is_function), resolved: 0B, path: fpath }
+    endif else begin
+      *self.testing_routines = [*self.testing_routines, { name: routine[i], is_function: keyword_set(is_function), resolved: 0B, path: fpath }]
+    endelse
+  endfor
+end
+
+;+
+; Add names of routines that are tested by a test suite.
+;
+; :Params:
+;   folders : in, required, type=string/`strarr`
+;     folder(s) to scan for functions and procedures for testing.
+;     Paths can be absolute or relative. If relative, they are
+;     relative to the location of the uts__define.pro (testsuite) source file,
+;     or the home keyword used when the testsuite was initialized.
+;-
+pro mguttestsuite::addTestingFolder, folders
+  compile_opt strictarr
+  
+  for f = 0L, n_elements(folders) do begin
+    folder = folders[f]
+    if folder[0] eq '/' then $
+      search_path = folder $
+    else $
+      search_path = filepath(folder, root_dir=self.home)
+    ; convert to normalized, not relative path
+    normpath, search_path, full_search_path
+    search_mask = filepath('*.pro', root_dir=full_search_path)
+    testFiles = file_search(search_mask, /fold_case, count=nTestFiles)
+
+    ; get just the idl file names, no paths
+    routines = file_basename(testFiles, '.pro')
+
+    ; find all the routines via the idl search path
+    for i = 0, n_elements(routines)-1 do begin
+      routine = routines[i]
+      catch, error
+      if (error ne 0L) then begin
+        catch, /cancel
+        ;      print, routine + " could not be resolved"
+        continue
+      endif
+      resolve_routine, routine, /compile_full_file, /either
+    endfor
+
+    ; resolve any routines called by the found files
+    resolve_all, /continue_on_error, /quiet
+
+    ; get a listing of all the source files
+    procedures = routine_info(/source)
+    functions = routine_info(/source, /functions)
+
+    ; remove any that are not under the given folder
+    ind = where(file_dirname(procedures.path) eq full_search_path, nind)
+    if nind gt 0 then begin
+      procpaths = procedures[ind].path
+      procnames = procedures[ind].name
+      self->addTestingRoutine, procnames, file_path=procpaths
+    endif
+
+    ind = where(file_dirname(functions.path) eq full_search_path, nind)
+    if nind gt 0 then begin
+      funcpaths = functions[ind].path
+      funcnames = functions[ind].name
+      self->addTestingRoutine, funcnames, file_path=funcpaths, /is_function
+    endif
+  endfor
+end
 
 ;+
 ; Define member variables.
@@ -438,6 +559,8 @@ end
 ;     `IDL_Container` holding test suites or test cases
 ;   testRunner
 ;     subclass of `MGutTestRunner`
+;   testing_routines
+;     optional list of testing_routines shared across all tests in the test suite
 ;   npass
 ;     number of passing tests contained in the hierarchy below this test suite
 ;   nfail
@@ -456,6 +579,7 @@ pro mguttestsuite__define
              level: 0L, $
              testcases: obj_new(), $
              testRunner: obj_new(), $
+             testing_routines: ptr_new(), $
              total_nlines: 0L, $
              covered_nlines: 0L, $
              npass: 0L, $

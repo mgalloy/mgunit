@@ -2,7 +2,9 @@
 
 ;+
 ; Results for tests, test cases, and test suites are reported to the test
-; runner. The `MGutXMLRunner` displays the results in the output XML file.
+; runner. The `mgutcoberturarunner` displays the results in the output XML file
+; using the "cobertura" format, which is used on the Jenkins CI server for
+; code coverage reports.
 ;
 ; :Private:
 ;-
@@ -24,15 +26,14 @@
 ;   level : in, required, type=integer
 ;     level of test suite
 ;-
-pro mgutxmlrunner::reportTestSuiteStart, testsuite, $
+pro mgutcoberturarunner::reportTestSuiteStart, testsuite, $
                                          ntestcases=ntestcases, $
                                          ntests=ntests, $
                                          level=level
   compile_opt strictarr
   
-  indent = level eq 0L ? '' : string(bytarr(2 * level) + 32B)
-  msg = string(indent, testsuite, format='(%"%s<testsuite name=\"%s\">")')
-  self->_print, self.lun, msg
+  ; cobertura requires summary statistics at the top
+  ; so we can't do anything here
 end
 
 
@@ -55,16 +56,131 @@ end
 ;   testing_routines : in, required, type=array
 ;     array of testing routines defined at the suite level
 ;-
-pro mgutxmlrunner::reportTestSuiteResult, npass=npass, nfail=nfail, $
+pro mgutcoberturarunner::reportTestSuiteResult, npass=npass, nfail=nfail, $
                                           nskip=nskip, level=level, $
                                           total_nlines=total_nlines, $
                                           covered_nlines=covered_nlines, $
                                           testing_routines=testing_routines
   compile_opt strictarr
 
-  indent = level eq 0L ? '' : string(bytarr(2 * level) + 32B)
-  msg = string(indent, format='(%"%s</testsuite>")')
-  self->_print, self.lun, msg
+  if (mg_idlversion(require='8.4')) then begin
+    if n_elements(testing_routines) gt 0 then begin
+      self->_print, self.lun, '<?xml version="1.0" ?>'
+      self->_print, self.lun, "<!DOCTYPE coverage SYSTEM 'http://cobertura.sourceforge.net/xml/coverage-03.dtd'>"
+      
+      ; get the overall test coverage
+      suite_total_nlines = 0L
+      suite_covered_nlines = 0L
+      for i = 0L, n_elements(testing_routines) - 1L do begin
+        r = testing_routines[i]
+        if (r.resolved) then begin
+          untested_lines = code_coverage(r.name, $
+                                         function=r.is_function, nlines=nlines)
+          suite_total_nlines += nlines
+          if (size(untested_lines, /n_dimensions) eq 0) then begin
+            covered_nlines = nlines
+          endif else begin
+            covered_nlines = nlines - n_elements(untested_lines)
+          endelse
+          suite_covered_nlines += covered_nlines
+        endif
+      endfor
+      line_coverage = 1.0 * suite_covered_nlines / suite_total_nlines
+      self->_print, self.lun, $
+        string(line_coverage, line_coverage, systime(1), $
+        format='(%"<coverage branch-rate=\"%0.4f\" line-rate=\"%0.4f\" timestamp=\"%d\" version=\"3.7.1\">")')
+      self->_print, self.lun, "  <packages>"
+      ; there's only one "package"
+      self->_print, self.lun, $
+        string(line_coverage, line_coverage, $
+        format='(%"    <package branch-rate=\"%0.4f\" line-rate=\"%0.4f\" complexity=\"0\" name=\"\">")')
+      self->_print, self.lun, "      <classes>"
+      
+      ; cobertura classes correspond to idl source files
+      filepaths = testing_routines.path
+      uniqpaths = filepaths[uniq(filepaths, sort(filepaths))]
+      
+      ; cobertura wants source paths relative to the current working directory
+      ; so save that now
+      cd, current=cwd
+      cwd = cwd + path_sep()
+      
+      for p = 0L, n_elements(uniqpaths) - 1L do begin
+        ; the filepath defines the class
+        uniqpath = uniqpaths[p]
+        ; get all the routines sharing the filepath
+        ind = where(testing_routines.path eq uniqpath, nind)
+        if nind eq 0 then begin
+          message, "Unexpected path not found: " + uniqpath, /info
+          continue
+        endif
+        ; get routines in the same file
+        path_routines = testing_routines[ind]
+        ; collect coverage stats on the file
+        total_nlines = 0L
+        covered_nlines = 0L
+        total_executed_lines = []
+        total_untested_lines = []
+        for i = 0L, n_elements(path_routines) - 1L do begin
+          r = path_routines[i]
+          if (r.resolved) then begin
+            untested_lines = code_coverage(r.name, $
+                                           function=r.is_function, nlines=nlines, executed=executed_lines)
+            total_nlines += nlines
+            total_executed_lines = [total_executed_lines, executed_lines]
+            total_untested_lines = [total_untested_lines, untested_lines]
+            if (size(untested_lines, /n_dimensions) eq 0) then begin
+              covered_nlines += nlines
+            endif else begin
+              covered_nlines += nlines - n_elements(untested_lines)
+            endelse
+          endif
+        endfor
+        
+        ; write the class element
+        ; the routines are not listed separately
+        line_coverage = 1.0 * covered_nlines / total_nlines
+        relpath = uniqpath
+        cwdpos = strpos(uniqpath, cwd)
+        if cwdpos eq 0 then $
+          relpath = strmid(uniqpath, strlen(cwd))
+        
+        self->_print, self.lun, $
+          string(line_coverage, line_coverage, relpath, file_basename(uniqpath, '.pro'), $
+          format='(%"        <class branch-rate=\"%0.4f\" line-rate=\"%0.4f\" complexity=\"0\" filename=\"%s\" name=\"%s\">")')
+
+        ; no methods
+        self->_print, self.lun, "          <methods/>"
+
+        ; write the executed and untested lines
+        lines = replicate({ line_number: 0, hit_count: 0}, n_elements(total_executed_lines) + n_elements(total_untested_lines))
+        lines[0:n_elements(total_untested_lines)-1].line_number = total_untested_lines
+        lines[n_elements(total_untested_lines):*].line_number = total_executed_lines
+        lines[n_elements(total_untested_lines):*].hit_count = 1
+        lines = lines[sort(lines.line_number)]
+
+        self->_print, self.lun, "          <lines>"
+
+        for l = 0L, n_elements(lines) - 1L do begin
+          line = lines[l]
+          ; sometimes a line number 0 is reported by code_coverage?
+          if line.line_number gt 0 then begin
+            self->_print, self.lun, $
+              string(line.hit_count, line.line_number, $
+              format='(%"            <line hits=\"%d\" number=\"%d\"/>")')
+          endif
+        endfor
+        
+        self->_print, self.lun, "          </lines>"
+        self->_print, self.lun, "        </class>"
+      endfor
+      
+      self->_print, self.lun, "      </classes>"
+      self->_print, self.lun, "    </package>"
+      self->_print, self.lun, "  </packages>"
+      self->_print, self.lun,"</coverage>"
+    endif
+  endif
 end
 
 
@@ -81,12 +197,9 @@ end
 ;   level : in, required, type=integer
 ;     level of test case
 ;-
-pro mgutxmlrunner::reportTestCaseStart, testcase, ntests=ntests, level=level
+pro mgutcoberturarunner::reportTestCaseStart, testcase, ntests=ntests, level=level
   compile_opt strictarr
 
-  indent = level eq 0L ? '' : string(bytarr(2 * level) + 32B)
-  msg = string(indent, testcase, format='(%"%s<testcase name=\"%s\">")')
-  self->_print, self.lun, msg
 end
 
 
@@ -103,13 +216,10 @@ end
 ;   level : in, required, type=integer
 ;     level of test case
 ;-
-pro mgutxmlrunner::reportTestCaseResult, npass=npass, nfail=nfail, $
+pro mgutcoberturarunner::reportTestCaseResult, npass=npass, nfail=nfail, $
                                          nskip=nskip, level=level
   compile_opt strictarr
 
-  indent = level eq 0L ? '' : string(bytarr(2 * level) + 32B)
-  msg = string(indent, format='(%"%s</testcase>")')
-  self->_print, self.lun, msg
 end
 
 
@@ -124,12 +234,9 @@ end
 ;   level : in, required, type=integer
 ;     level of test case
 ;-
-pro mgutxmlrunner::reportTestStart, testname, level=level
+pro mgutcoberturarunner::reportTestStart, testname, level=level
   compile_opt strictarr
 
-  indent = level eq 0L ? '' : string(bytarr(2 * level) + 32B)
-  msg = string(indent, testname, format='(%"%s  <test name=\"%s\">")')
-  self->_print, self.lun, msg
 end
 
 
@@ -154,27 +261,12 @@ end
 ;   math_errors : out, optional, type=integer
 ;     bitmask of `CHECK_MATH` return values
 ;-
-pro mgutxmlrunner::reportTestResult, msg, passed=passed, $
+pro mgutcoberturarunner::reportTestResult, msg, passed=passed, $
                                      output=output, skipped=skipped, $
                                      time=time, level=level, $
                                      math_errors=math_errors
   compile_opt strictarr
 
-  indent = level eq 0L ? '' : string(bytarr(2 * level) + 32B)
-
-  case 1 of
-    keyword_set(skipped): begin
-      _msg = string(indent, msg, format='(%"%s    <skipped>%s</skipped>")')
-      self->_print, self.lun, _msg
-    end
-    ~keyword_set(passed): begin
-      _msg = string(indent, msg, format='(%"%s    <failure>%s</failure>")')
-      self->_print, self.lun, _msg
-    end
-    else:
-  endcase
-
-  self->_print, self.lun, string(indent, format='(%"%s  </test>")')
 end
 
 
@@ -198,13 +290,12 @@ end
 ;   covered_nlines : in, required, type=long
 ;     number of lines covered in testing routines
 ;-
-pro mgutxmlrunner::reportTestCaseCoverage, covered_routines, tested_routines, $
+pro mgutcoberturarunner::reportTestCaseCoverage, covered_routines, tested_routines, $
                                            level=level, $
                                            total_nlines=total_nlines, $
                                            covered_nlines=covered_nlines
   compile_opt strictarr
 
-  ; TODO: implement
 end
 
 
@@ -223,7 +314,7 @@ end
 ;   _extra : in, optional, type=keywords
 ;     keywords to `MG_ANSICODE`, i.e., `RED` or `GREEN`
 ;-
-pro mgutxmlrunner::_print, lun, text, _extra=e
+pro mgutcoberturarunner::_print, lun, text, _extra=e
   compile_opt strictarr
 
   printf, lun, text, _extra=e
@@ -236,7 +327,7 @@ end
 ;+
 ; Free resources.
 ;-
-pro mgutxmlrunner::cleanup
+pro mgutcoberturarunner::cleanup
   compile_opt strictarr
 
   if (self.lun gt 0) then free_lun, self.lun
@@ -259,7 +350,7 @@ end
 ;   _extra : in, optional, type=keywords
 ;     keywords to `MGutTestRunner::init`
 ;-
-function mgutxmlrunner::init, filename=filename, color=color, _extra=e
+function mgutcoberturarunner::init, filename=filename, color=color, _extra=e
   compile_opt strictarr
 
   if (~self->mguttestrunner::init(_extra=e)) then return, 0B
@@ -289,10 +380,10 @@ end
 ;   lun
 ;     the logical unit number to send output to (`-1L` by default)
 ;-
-pro mgutxmlrunner__define
+pro mgutcoberturarunner__define
   compile_opt strictarr
 
-  define = { MGutXmlRunner, inherits MGutTestRunner, $
+  define = { mgutcoberturarunner, inherits MGutTestRunner, $
              lun: 0L $
            }
 end
