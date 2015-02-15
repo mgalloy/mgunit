@@ -48,6 +48,45 @@ end
 
 
 ;+
+; Create a string from an array of line numbers.
+;
+; :Private:
+;
+; :Returns:
+;   string
+;
+; :Params:
+;   lines : in, required, type=long/`lonarr`
+;     array of line numbers or a scalar 0
+;-
+function mgutclirunner::_combineLines, lines
+  compile_opt strictarr
+
+  if (size(lines, /n_dimensions) eq 0) then return, ''
+
+  f = '(%"%d")'
+  if (n_elements(lines) eq 1L) then return, string(lines[0], format=f)
+
+  diff = lines[1:-1] - lines[0:-2]
+  r = string(lines[0], format=f)
+  in_range = 0B
+  for i = 0L, n_elements(diff) - 1L do begin
+    if (diff[i] eq 1L) then begin
+      if (~in_range) then r += '-'
+      in_range = 1B
+    endif else begin
+      if (in_range) then r += string(lines[i], format=f)
+      in_range = 0B
+      r += ', ' + string(lines[i + 1], format=f)
+    endelse
+  endfor
+  if (in_range) then r += string(lines[i], format=f)
+
+  return, r
+end
+
+
+;+
 ; Report the results of a test suite.
 ;
 ; :Keywords:
@@ -63,21 +102,52 @@ end
 ;     total number of lines in testing routines
 ;   covered_nlines : in, required, type=long
 ;     number of lines covered in testing routines
+;   testing_routines : in, required, type=array
+;     array of testing routines defined at the suite level
 ;-
 pro mgutclirunner::reportTestSuiteResult, npass=npass, nfail=nfail, $
                                           nskip=nskip, level=level, $
                                           total_nlines=total_nlines, $
-                                          covered_nlines=covered_nlines
+                                          covered_nlines=covered_nlines, $
+                                          testing_routines=testing_routines
+
   compile_opt strictarr
 
   coverage = ''
   if (mg_idlversion(require='8.4')) then begin
-    if (total_nlines eq 0L) then begin
-      coverage = ' (no coverage information)'
-    endif else begin
+    if n_elements(testing_routines) gt 0 then begin
+      ; collect the total lines in the testing_routings
+      suite_total_nlines = 0L
+      suite_covered_nlines = 0L
+      indent = string(bytarr(level * self.indent) + self.space)
+      for i = 0L, n_elements(testing_routines) - 1L do begin
+        r = testing_routines[i]
+        if (r.resolved) then begin
+          untested_lines = code_coverage(r.name, $
+                                         function=r.is_function, nlines=nlines)
+          suite_total_nlines += nlines
+          if (size(untested_lines, /n_dimensions) eq 0) then begin
+            covered_nlines = nlines
+            suite_covered_nlines += nlines
+          endif else begin
+            covered_nlines = nlines - n_elements(untested_lines)
+            suite_covered_nlines += covered_nlines
+          endelse
+          untested_lines_st = self->_combineLines(untested_lines)
+          
+          self->_print, self.logLun, $
+            string(indent, r.name, 100.0 * covered_nlines / nlines, untested_lines_st, $
+            format='(%"%s\"%s\" coverage: %0.1f\%, untested lines: %s")')
+        endif
+      endfor
+      
+      coverage = string(100.0 * suite_covered_nlines / suite_total_nlines, $
+        format='(%" (%0.1f\% coverage)")')
+
+    endif else if total_nlines gt 0L then begin
       coverage = string(100.0 * covered_nlines / total_nlines, $
                         format='(%" (%0.1f\% coverage)")')
-      endelse
+    endif
   endif
 
   format = '(%"%sResults: %d / %d tests passed, %d skipped%s")'
