@@ -38,6 +38,273 @@ end
 
 
 ;+
+; Write the header at the top of the coverage.xml file.
+;-
+pro mgutcoberturarunner::_writeHeader
+  self->_print, self.lun, '<?xml version="1.0" ?>'
+  self->_print, self.lun, "<!DOCTYPE coverage SYSTEM 'http://cobertura.sourceforge.net/xml/coverage-03.dtd'>"
+end
+
+
+;+
+; Write a <lines> section of coverage.xml. 
+;
+; :Params:
+;   total_executed_lines : in, required, type=`intarr`
+;     array of line numbers of code that has been executed
+;   total_untested_lines : in, required, type=`intarr`
+;     array of line numbers of code that has not been executed
+;-
+pro mgutcoberturarunner::_writeLines, total_executed_lines, total_untested_lines
+  ; merge the executed and untested lines
+  lines = replicate({ line_number: 0, hit_count: 0}, n_elements(total_executed_lines) + n_elements(total_untested_lines))
+  lines[0:n_elements(total_untested_lines)-1].line_number = total_untested_lines
+  lines[n_elements(total_untested_lines):*].line_number = total_executed_lines
+  lines[n_elements(total_untested_lines):*].hit_count = 1
+  uniqlines = lines[uniq(lines.line_number, sort(lines.line_number))]
+
+  self->_print, self.lun, "          <lines>"
+
+  for l = 0L, n_elements(uniqlines) - 1L do begin
+    line = uniqlines[l]
+    ; sometimes a line number 0 is reported by code_coverage?
+    if line.line_number gt 0 then begin
+      self->_print, self.lun, $
+        string(line.hit_count, line.line_number, $
+        format='(%"            <line hits=\"%d\" number=\"%d\"/>")')
+    endif
+  endfor
+
+  self->_print, self.lun, "          </lines>"
+end
+
+
+;+
+; Compute the fractional line coverage of an array of testing_routines.
+; Optionally build and return arrays of executed and untested line numbers.
+;
+; :Returns:
+;   Float between 0 and 1 giving the fractional line coverage across
+;   the array of routines.
+;   
+; :Keywords:
+;   testing_routines : in, required, type=`structarr`
+;     array of structures containing the routines to be tested.
+;   total_executed_lines : out, optional, type=`intarr`
+;     array of line numbers of code that has been executed
+;   total_untested_lines : out, optional, type=`intarr`
+;     array of line numbers of code that has not been executed
+;-
+function mgutcoberturarunner::_getLineCoverage, testing_routines=testing_routines, $
+  total_executed_lines=total_executed_lines, total_untested_lines=total_untested_lines
+  ; collect coverage stats on the file
+  total_nlines = 0L
+  covered_nlines = 0L
+  total_executed_lines = []
+  total_untested_lines = []
+  for i = 0L, n_elements(testing_routines) - 1L do begin
+    r = testing_routines[i]
+    if (r.resolved) then begin
+      untested_lines = code_coverage(r.name, $
+        function=r.is_function, nlines=nlines, executed=executed_lines)
+      total_nlines += nlines
+      total_executed_lines = [total_executed_lines, executed_lines]
+      total_untested_lines = [total_untested_lines, untested_lines]
+      if (size(untested_lines, /n_dimensions) eq 0) then begin
+        covered_nlines += nlines
+      endif else begin
+        covered_nlines += nlines - n_elements(untested_lines)
+      endelse
+    endif
+  endfor
+  line_coverage = 1.0 * covered_nlines / total_nlines
+  return, line_coverage
+end
+
+
+;+
+; Write a <class> section of coverage.xml.
+;
+; :Params:
+;   uniqpath : in, required, type=string
+;     the complete path to a "class", here any .pro file
+;   cwd : in, required, type=string
+;     the current working directory of the running program
+;
+; :Keywords:
+;   testing_routines : in, required, type=`structarr`
+;     array of structures containing the routines to be reported.
+;-
+pro mgutcoberturarunner::_writeClass, uniqpath, cwd, testing_routines=testing_routines
+  ; get all the routines sharing the filepath
+  ind = where(testing_routines.path eq uniqpath, nind)
+  if nind eq 0 then begin
+    message, "Unexpected path not found: " + uniqpath, /info
+    return
+  endif
+  
+  ; get routines in the same file
+  path_routines = testing_routines[ind]
+  ; collect coverage stats on the file
+  line_coverage = self->_getLineCoverage(testing_routines=path_routines, $
+    total_executed_lines=total_executed_lines, total_untested_lines=total_untested_lines)
+
+  ; write the class element
+  ; the routines are not listed separately
+  relpath = uniqpath
+  cwdpos = strpos(uniqpath, cwd)
+  if cwdpos eq 0 then $
+    relpath = strmid(uniqpath, strlen(cwd))
+
+  self->_print, self.lun, $
+    string(line_coverage, line_coverage, relpath, file_basename(uniqpath, '.pro'), $
+    format='(%"        <class branch-rate=\"%0.4f\" line-rate=\"%0.4f\" complexity=\"0\" filename=\"%s\" name=\"%s\">")')
+
+  ; no methods
+  self->_print, self.lun, "          <methods/>"
+  
+  ; print lines with hit count
+  self->_writeLines, total_executed_lines, total_untested_lines
+
+  self->_print, self.lun, "        </class>"
+end
+
+
+;+
+; Write a <classes> section of coverage.xml.
+;
+; :Params:
+;   cwd : in, required, type=string
+;     the current working directory of the running program
+;
+; :Keywords:
+;   testing_routines : in, required, type=`structarr`
+;     array of structures containing the routines to be reported.
+;-
+pro mgutcoberturarunner::_writeClasses, cwd, testing_routines=testing_routines
+  self->_print, self.lun, "      <classes>"
+  
+  ; cobertura classes correspond to idl source files
+  filepaths = testing_routines.path
+  uniqpaths = filepaths[uniq(filepaths, sort(filepaths))]
+
+  for p = 0L, n_elements(uniqpaths) - 1L do begin
+    ; the filepath defines the class
+    uniqpath = uniqpaths[p]
+    
+    self->_writeClass, uniqPath, cwd, testing_routines=testing_routines
+  endfor
+
+  self->_print, self.lun, "      </classes>"
+end
+
+
+;+
+; Write a <package> section of coverage.xml.
+;
+; :Params:
+;   package : in, required, type=string
+;     the complete directory to a "package", here a directory containing .pro files
+;   cwd : in, required, type=string
+;     the current working directory of the running program
+;
+; :Keywords:
+;   testing_routines : in, required, type=`structarr`
+;     array of structures containing the routines to be reported.
+;-
+pro mgutcoberturarunner::_writePackage, package, cwd, testing_routines=testing_routines
+  ; get all the files within the package
+  ind = where(file_dirname(testing_routines.path) eq package, nind)
+  if nind eq 0 then begin
+    message, "Unexpected package files not found: " + package, /info
+    return
+  endif
+  package_routines = testing_routines[ind]
+  
+  ; compute package-level coverage
+  line_coverage = self->_getLineCoverage(testing_routines=package_routines)
+
+  ; write the package element
+  relpath = package + path_sep()
+  cwdpos = strpos(relpath, cwd)
+  if cwdpos eq 0 then $
+    relpath = strmid(package, strlen(cwd))
+  self->_print, self.lun, $
+    string(line_coverage, line_coverage, relpath, $
+    format='(%"    <package branch-rate=\"%0.4f\" line-rate=\"%0.4f\" complexity=\"0\" name=\"%s\">")')
+    
+  self->_writeClasses, cwd, testing_routines=package_routines
+  
+  self->_print, self.lun, "    </package>"
+end
+
+
+;+
+; Write a <packages> section of coverage.xml.
+;
+; :Keywords:
+;   testing_routines : in, required, type=`structarr`
+;     array of structures containing the routines to be reported.
+;-
+pro mgutcoberturarunner::_writePackages, testing_routines=testing_routines
+  ; cobertura wants source paths relative to the current working directory
+  ; so save that now
+  cd, current=cwd
+  cwd = cwd + path_sep()
+
+  self->_print, self.lun, "  <packages>"
+
+  ; cobertura packages correspond to folders in the idl
+  packages = file_dirname(testing_routines.path)
+  uniqpackages = packages[uniq(packages, sort(packages))]
+  for f = 0L, n_elements(uniqpackages) - 1L do begin
+    package = uniqpackages[f]
+    
+    self->_writePackage, package, cwd, testing_routines=testing_routines
+  endfor
+
+  self->_print, self.lun, "  </packages>"
+end
+
+
+;+
+; Write the <coverage> section of coverage.xml.
+;
+; :Keywords:
+;   testing_routines : in, required, type=`structarr`
+;     array of structures containing the routines to be reported.
+;-
+pro mgutcoberturarunner::_writeCoverage, testing_routines=testing_routines
+  ; get the overall test coverage
+  line_coverage = self->_getLineCoverage(testing_routines=testing_routines)
+  self->_print, self.lun, $
+    string(line_coverage, line_coverage, systime(1), $
+    format='(%"<coverage branch-rate=\"%0.4f\" line-rate=\"%0.4f\" timestamp=\"%d\" version=\"3.7.1\">")')
+
+  self->_writePackages, testing_routines=testing_routines
+
+  self->_print, self.lun,"</coverage>"
+end
+
+
+;+
+; Write the coverage.xml rile with header and all contents.
+;
+; :Keywords:
+;   testing_routines : in, required, type=`structarr`
+;     array of structures containing the routines to be reported.
+;-
+pro mgutcoberturarunner::_writeCoverageXml, testing_routines=testing_routines
+  compile_opt strictarr
+
+  if n_elements(testing_routines) gt 0 then begin
+    self->_writeHeader
+    self->_writeCoverage, testing_routines=testing_routines
+  endif
+end
+
+
+;+
 ; Report the results of a test suite.
 ;
 ; :Keywords:
@@ -64,122 +331,7 @@ pro mgutcoberturarunner::reportTestSuiteResult, npass=npass, nfail=nfail, $
   compile_opt strictarr
 
   if (mg_idlversion(require='8.4')) then begin
-    if n_elements(testing_routines) gt 0 then begin
-      self->_print, self.lun, '<?xml version="1.0" ?>'
-      self->_print, self.lun, "<!DOCTYPE coverage SYSTEM 'http://cobertura.sourceforge.net/xml/coverage-03.dtd'>"
-      
-      ; get the overall test coverage
-      suite_total_nlines = 0L
-      suite_covered_nlines = 0L
-      for i = 0L, n_elements(testing_routines) - 1L do begin
-        r = testing_routines[i]
-        if (r.resolved) then begin
-          untested_lines = code_coverage(r.name, $
-                                         function=r.is_function, nlines=nlines)
-          suite_total_nlines += nlines
-          if (size(untested_lines, /n_dimensions) eq 0) then begin
-            covered_nlines = nlines
-          endif else begin
-            covered_nlines = nlines - n_elements(untested_lines)
-          endelse
-          suite_covered_nlines += covered_nlines
-        endif
-      endfor
-      line_coverage = 1.0 * suite_covered_nlines / suite_total_nlines
-      self->_print, self.lun, $
-        string(line_coverage, line_coverage, systime(1), $
-        format='(%"<coverage branch-rate=\"%0.4f\" line-rate=\"%0.4f\" timestamp=\"%d\" version=\"3.7.1\">")')
-      self->_print, self.lun, "  <packages>"
-      ; there's only one "package"
-      self->_print, self.lun, $
-        string(line_coverage, line_coverage, $
-        format='(%"    <package branch-rate=\"%0.4f\" line-rate=\"%0.4f\" complexity=\"0\" name=\"\">")')
-      self->_print, self.lun, "      <classes>"
-      
-      ; cobertura classes correspond to idl source files
-      filepaths = testing_routines.path
-      uniqpaths = filepaths[uniq(filepaths, sort(filepaths))]
-      
-      ; cobertura wants source paths relative to the current working directory
-      ; so save that now
-      cd, current=cwd
-      cwd = cwd + path_sep()
-      
-      for p = 0L, n_elements(uniqpaths) - 1L do begin
-        ; the filepath defines the class
-        uniqpath = uniqpaths[p]
-        ; get all the routines sharing the filepath
-        ind = where(testing_routines.path eq uniqpath, nind)
-        if nind eq 0 then begin
-          message, "Unexpected path not found: " + uniqpath, /info
-          continue
-        endif
-        ; get routines in the same file
-        path_routines = testing_routines[ind]
-        ; collect coverage stats on the file
-        total_nlines = 0L
-        covered_nlines = 0L
-        total_executed_lines = []
-        total_untested_lines = []
-        for i = 0L, n_elements(path_routines) - 1L do begin
-          r = path_routines[i]
-          if (r.resolved) then begin
-            untested_lines = code_coverage(r.name, $
-                                           function=r.is_function, nlines=nlines, executed=executed_lines)
-            total_nlines += nlines
-            total_executed_lines = [total_executed_lines, executed_lines]
-            total_untested_lines = [total_untested_lines, untested_lines]
-            if (size(untested_lines, /n_dimensions) eq 0) then begin
-              covered_nlines += nlines
-            endif else begin
-              covered_nlines += nlines - n_elements(untested_lines)
-            endelse
-          endif
-        endfor
-        
-        ; write the class element
-        ; the routines are not listed separately
-        line_coverage = 1.0 * covered_nlines / total_nlines
-        relpath = uniqpath
-        cwdpos = strpos(uniqpath, cwd)
-        if cwdpos eq 0 then $
-          relpath = strmid(uniqpath, strlen(cwd))
-        
-        self->_print, self.lun, $
-          string(line_coverage, line_coverage, relpath, file_basename(uniqpath, '.pro'), $
-          format='(%"        <class branch-rate=\"%0.4f\" line-rate=\"%0.4f\" complexity=\"0\" filename=\"%s\" name=\"%s\">")')
-
-        ; no methods
-        self->_print, self.lun, "          <methods/>"
-
-        ; write the executed and untested lines
-        lines = replicate({ line_number: 0, hit_count: 0}, n_elements(total_executed_lines) + n_elements(total_untested_lines))
-        lines[0:n_elements(total_untested_lines)-1].line_number = total_untested_lines
-        lines[n_elements(total_untested_lines):*].line_number = total_executed_lines
-        lines[n_elements(total_untested_lines):*].hit_count = 1
-        lines = lines[sort(lines.line_number)]
-
-        self->_print, self.lun, "          <lines>"
-
-        for l = 0L, n_elements(lines) - 1L do begin
-          line = lines[l]
-          ; sometimes a line number 0 is reported by code_coverage?
-          if line.line_number gt 0 then begin
-            self->_print, self.lun, $
-              string(line.hit_count, line.line_number, $
-              format='(%"            <line hits=\"%d\" number=\"%d\"/>")')
-          endif
-        endfor
-        
-        self->_print, self.lun, "          </lines>"
-        self->_print, self.lun, "        </class>"
-      endfor
-      
-      self->_print, self.lun, "      </classes>"
-      self->_print, self.lun, "    </package>"
-      self->_print, self.lun, "  </packages>"
-      self->_print, self.lun,"</coverage>"
-    endif
+    self->_writeCoverageXml, testing_routines=testing_routines
   endif
 end
 
