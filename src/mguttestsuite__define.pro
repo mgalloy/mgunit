@@ -501,7 +501,7 @@ pro mguttestsuite::addTestingFolder, folders
     else $
       search_path = filepath(folder, root_dir=self.home)
     ; convert to normalized, not relative path
-    normpath, search_path, full_search_path
+    full_search_path = file_expand_path(search_path)
     search_mask = filepath('*.pro', root_dir=full_search_path)
     testFiles = file_search(search_mask, /fold_case, count=nTestFiles)
 
