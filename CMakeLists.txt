@@ -37,14 +37,14 @@ file(GLOB_RECURSE IDLDOC_FILES "src/*.idldoc")
 if (IDLdoc_FOUND)
   add_custom_command(
     OUTPUT api-docs/index.html
-    COMMAND ${IDL_EXECUTABLE} -quiet -IDL_QUIET 1 -IDL_STARTUP \"\" -IDL_PATH \"+${CMAKE_CURRENT_SOURCE_DIR}${IDL_PATH_SEP}+${IDLdoc_DIR}${IDL_PATH_SEP}<IDL_DEFAULT>\" -e mgunit_build_docs
+    COMMAND ${IDL_EXECUTABLE} -IDL_STARTUP \"\" -IDL_PATH \"+${CMAKE_CURRENT_SOURCE_DIR}${IDL_PATH_SEP}+${IDLdoc_DIR}${IDL_PATH_SEP}<IDL_DEFAULT>\" -e mgunit_build_docs
     DEPENDS ${PRO_FILES} ${IDLDOC_FILES}
   )
   add_custom_target(doc DEPENDS api-docs/index.html)
   
   add_custom_command(
     OUTPUT api-userdocs/index.html
-    COMMAND ${IDL_EXECUTABLE} -quiet -IDL_QUIET 1 -IDL_STARTUP \"\" -IDL_PATH \"+${CMAKE_CURRENT_SOURCE_DIR}${IDL_PATH_SEP}+${IDLdoc_DIR}${IDL_PATH_SEP}<IDL_DEFAULT>\" -e mgunit_build_userdocs
+    COMMAND ${IDL_EXECUTABLE} -IDL_STARTUP \"\" -IDL_PATH \"+${CMAKE_CURRENT_SOURCE_DIR}${IDL_PATH_SEP}+${IDLdoc_DIR}${IDL_PATH_SEP}<IDL_DEFAULT>\" -e mgunit_build_userdocs
     DEPENDS ${PRO_FILES} ${IDLDOC_FILES}
   )
   add_custom_target(userdoc ALL DEPENDS api-userdocs/index.html)
@@ -56,7 +56,7 @@ set_directory_properties(PROPERTIES
 
 add_custom_command(
   OUTPUT mgunit.sav
-  COMMAND ${IDL_EXECUTABLE} -quiet -IDL_QUIET 1 -IDL_STARTUP \"\" -IDL_PATH \"+${CMAKE_CURRENT_SOURCE_DIR}${IDL_PATH_SEP}<IDL_DEFAULT>\" mgunit_build
+  COMMAND ${IDL_EXECUTABLE} -IDL_STARTUP \"\" -IDL_PATH \"+${CMAKE_CURRENT_SOURCE_DIR}${IDL_PATH_SEP}<IDL_DEFAULT>\" mgunit_build
   DEPENDS ${PROFILES})
 add_custom_target(savfile ALL DEPENDS mgunit.sav)
 
