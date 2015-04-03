@@ -75,6 +75,8 @@ end
 ;     report only failed tests
 ;   version : in, optional, type=boolean
 ;     set to report version and exit
+;   _extra : in, optional, type=keywords
+;     keywords to `MGutTestCase` subclasses `init` methods
 ;-
 pro mgunit, tests, $
             color=color, $
@@ -89,7 +91,8 @@ pro mgunit, tests, $
             nskip=nskip, $
             ntests=ntests, $
             failures_only=failuresOnly, $
-            version=version
+            version=version, $
+            _extra=e
   compile_opt strictarr
 
   if (keyword_set(version)) then begin
@@ -134,7 +137,8 @@ pro mgunit, tests, $
     testsuite = obj_new('MGutTestSuite', $
                         test_runner=testRunner, $
                         name='All tests', $
-                        failures_only=failuresOnly)
+                        failures_only=failuresOnly, $
+                        _extra=e)
 
     for i = 0L, n_elements(runnerName) - 1L do begin
       f = n_elements(f) eq 0L ? 0L : i mod n_elements(filename)
@@ -148,7 +152,7 @@ pro mgunit, tests, $
                                test_suite=testsuite)
     endfor
 
-    testsuite->add, tests
+    testsuite->add, tests, _extra=e
     testsuite->run
     if (keyword_set(failuresOnly)) then testsuite->display
     testsuite->getProperty, npass=npass, nfail=nfail, nskip=nskip, $

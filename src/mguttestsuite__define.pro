@@ -113,7 +113,7 @@ function mguttestsuite::_makeTestCase, testname, error=error, _extra=e
   self->_recompile, testName
 
   return, obj_new(testName, test_runner=self.testRunner, $
-                  failures_only=self.failuresOnly, _strict_extra=e)
+                  failures_only=self.failuresOnly, _extra=e)
 end
 
 
@@ -250,8 +250,10 @@ end
 ;     set to add all the files in the current directory that end in
 ;     "_ut__define.pro" (the current directory is defined to be the
 ;     directory where the method calling this method is located)
+;   _extra : in, optional, type=keywords
+;     keywords to `MGutTestCase` subclass `init` methods
 ;-
-pro mguttestsuite::add, tests, all=all
+pro mguttestsuite::add, tests, all=all, _extra=e
   compile_opt strictarr
 
   if (keyword_set(all)) then begin
@@ -266,7 +268,7 @@ pro mguttestsuite::add, tests, all=all
     for t = 0L, nTestFiles - 1L do begin
       ; "__define.pro" is 12 characters long
       myTests[t] = strmid(myTests[t], 0, strlen(myTests[t]) - 12L)
-      self->add, myTests[t]
+      self->add, myTests[t], _extra=e
     endfor
 
     ; second, for each directory in the current directory, either:
@@ -283,7 +285,7 @@ pro mguttestsuite::add, tests, all=all
         suiteName = file_basename(uts[0])
         ; "__define.pro" is 12 characters long
         suiteName = strmid(suiteName, 0, strlen(suiteName) - 12L)
-        if (suiteName ne self.name) then self->add, suiteName
+        if (suiteName ne self.name) then self->add, suiteName, _extra=e
 
         continue   ; finished with this directory
       endif
@@ -297,8 +299,9 @@ pro mguttestsuite::add, tests, all=all
       otestsuite = obj_new('MGutTestSuite', home=testDirs[d], $
                            name=file_basename(testDirs[d]), $
                            test_runner=self.testRunner, $
-                           failures_only=self.failuresOnly)
-      otestsuite->add, /all
+                           failures_only=self.failuresOnly, $
+                           _extra=e)
+      otestsuite->add, /all, _extra=e
       self.testcases->add, otestsuite
     endfor
   endif else begin
@@ -315,7 +318,7 @@ pro mguttestsuite::add, tests, all=all
       if (classname eq self.name) then continue
 
       ; see if test is valid
-      otestcase = self->_makeTestCase(classname, error=error)
+      otestcase = self->_makeTestCase(classname, error=error, _extra=e)
       if (error ne 0L) then begin
         print, 'Error creating ' + classname + ' object: ' + !error_state.msg
         continue
@@ -416,11 +419,14 @@ end
 ;     subclass of `MGutTestRunner`
 ;   failures_only : in, optional, type=boolean
 ;     set to report only failed tests
+;   _extra : in, optional, type=keywords
+;     keywords to `MGutTestCase` subclass `init` methods
 ;-
 function mguttestsuite::init, name=name, $
                               home=home, $
                               test_runner=testRunner, $
-                              failures_only=failuresOnly
+                              failures_only=failuresOnly, $
+                              _extra=e
   compile_opt strictarr
 
   self.name = n_elements(name) eq 0 ? strlowcase(obj_class(self)) : name
