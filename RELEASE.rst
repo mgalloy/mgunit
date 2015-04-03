@@ -1,6 +1,15 @@
 Release notes
 =============
 
+mgunit 1.5
+----------
+
+* Passing keywords to MGUNIT down to MGutTestCase subclasses.
+
+* Suite level test coverage.
+
+* Adding Cobertura output option.
+
 
 mgunit 1.4
 ----------
