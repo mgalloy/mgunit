@@ -97,11 +97,10 @@ end
 ; :Keywords:
 ;   error : out, optional, type=boolean
 ;     0 if no error and 1 if an error
-;   _extra : in, optional, type=keywords
-;     keywords to `OBJ_NEW` for test cases and test suites
 ;-
-function mguttestsuite::_makeTestCase, testname, error=error, _extra=e
+function mguttestsuite::_makeTestCase, testname, error=error
   compile_opt strictarr
+  @mgunit_common
 
   error = 0L
   catch, error
@@ -113,7 +112,7 @@ function mguttestsuite::_makeTestCase, testname, error=error, _extra=e
   self->_recompile, testName
 
   return, obj_new(testName, test_runner=self.testRunner, $
-                  failures_only=self.failuresOnly, _extra=e)
+                  failures_only=self.failuresOnly, _extra=mgunit_common_extra)
 end
 
 
@@ -318,7 +317,7 @@ pro mguttestsuite::add, tests, all=all, _extra=e
       if (classname eq self.name) then continue
 
       ; see if test is valid
-      otestcase = self->_makeTestCase(classname, error=error, _extra=e)
+      otestcase = self->_makeTestCase(classname, error=error)
       if (error ne 0L) then begin
         print, 'Error creating ' + classname + ' object: ' + !error_state.msg
         continue

@@ -4,10 +4,7 @@ Release notes
 mgunit 1.5
 ----------
 
-* Passing keywords to MGUNIT down to MGutTestCase subclasses. One note: any
-  subclasses of MGutTestSuite must have an init method which excepts _EXTRA
-  and passes keywords along to MGutTestSuite::init and MGutTestSuite::add
-  calls.
+* Passing keywords to MGUNIT down to MGutTestCase subclasses.
 
 * Suite level test coverage.
 

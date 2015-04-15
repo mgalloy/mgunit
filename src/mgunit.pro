@@ -94,6 +94,10 @@ pro mgunit, tests, $
             version=version, $
             _extra=e
   compile_opt strictarr
+  @mgunit_common
+
+  ; pass extra keywords along to unit test class creation
+  if (n_elements(e) gt 0) then mgunit_common_extra = e
 
   if (keyword_set(version)) then begin
     print, string(mgunit_version(), format='(%"mgunit %s")')
