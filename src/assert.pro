@@ -30,12 +30,8 @@
 ;       condition to assert
 ;    msg : in, optional, type=string, default="'Assertion failed'"
 ;       message to throw if condition is not met
-;    arg1 : in, optional, type=string
-;       first argument for any C format codes in msg
-;    arg2 : in, optional, type=string
-;       second argument for any C format codes in msg
-;    arg3 : in, optional, type=string
-;       third argument for any C format codes in msg
+;    arg1, arg2, arg3 : in, optional, type=string
+;       arguments for any C format codes in msg
 ;
 ; :Keywords:
 ;    skip : in, optional, type=boolean
