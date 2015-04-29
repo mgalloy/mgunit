@@ -30,14 +30,14 @@
 ;       condition to assert
 ;    msg : in, optional, type=string, default="'Assertion failed'"
 ;       message to throw if condition is not met
-;    arg1, arg2, arg3 : in, optional, type=string
+;    arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 : in, optional, type=string
 ;       arguments for any C format codes in msg
 ;
 ; :Keywords:
 ;    skip : in, optional, type=boolean
 ;       set to skip the current test instead of passing or failing
 ;-
-pro assert, condition, msg, arg1, arg2, arg3, skip=skip
+pro assert, condition, msg, arg1, arg2, arg3, arg4, arg5, skip=skip
   compile_opt strictarr, logical_predicate, hidden
   on_error, 2
 
@@ -53,6 +53,11 @@ pro assert, condition, msg, arg1, arg2, arg3, skip=skip
       3: message, string(arg1, format='(%"' + msg + '")')
       4: message, string(arg1, arg2, format='(%"' + msg + '")')
       5: message, string(arg1, arg2, arg3, format='(%"' + msg + '")')
+      6: message, string(arg1, arg2, arg3, arg4, format='(%"' + msg + '")')
+      7: message, string(arg1, arg2, arg3, arg4, arg5, format='(%"' + msg + '")')
+      8: message, string(arg1, arg2, arg3, arg4, arg5, arg6, format='(%"' + msg + '")')
+      9: message, string(arg1, arg2, arg3, arg4, arg5, arg6, arg7, format='(%"' + msg + '")')
+      10: message, string(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, format='(%"' + msg + '")')
     endcase
   endif
 end
