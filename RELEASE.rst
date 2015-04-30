@@ -10,6 +10,8 @@ mgunit 1.5
 
 * Adding Cobertura output option.
 
+* Allowing up to 8 arguments for substituting into ASSERT error message.
+
 
 mgunit 1.4
 ----------
