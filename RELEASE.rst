@@ -6,7 +6,7 @@ mgunit 1.5
 
 * Passing keywords to MGUNIT down to MGutTestCase subclasses.
 
-* Suite level test coverage.
+* Reporting coverage of tested routines.
 
 * Adding Cobertura output option.
 
