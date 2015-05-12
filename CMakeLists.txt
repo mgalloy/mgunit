@@ -76,6 +76,8 @@ include(CPack)
 # script to build mgunit.sav only at "make install"
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/mgunit.sav DESTINATION lib)
 
+install(PROGRAMS idlroutines.py DESTINATION bin)
+
 install(FILES README.rst COPYING.rst RELEASE.rst DESTINATION .)
 if (IDLdoc_FOUND)
   install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/api-userdocs DESTINATION .)
