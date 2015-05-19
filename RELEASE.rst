@@ -15,7 +15,7 @@ mgunit 1.5
 
 mgunit 1.4
 ----------
-*Releasd 18 November 2013*
+*Released 18 November 2013*
 
 * Checks for updates when using the VERSION keyword.
 

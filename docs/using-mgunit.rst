@@ -164,6 +164,67 @@ HTML output can also be created with the boolean `HTML` keyword to the `MGUNIT` 
   IDL> mgunit, 'mglib_uts', filename='test-results.html', /html
 
 
+Running tests in a mode
+-----------------------
+
+It is useful to be able pass arguments to `mgunit` when starting the tests that could be checked during a test. This could indicate to a test that it should skip itself via `ASSERT, /SKIP` or have some other alternative behavior.
+
+To use this, define a super class for your tests that inherits from `MGutTestCase` which accepts a keyword for your property, say `MY_PROPERTY`, in its `::init` method. Store that value in some manner, probably as an instance variable of your object, so that you can check it in your test. Then call `mgunit` like this::
+
+  mgunit, 'my_testas_uts', MY_PROPERTY=1
+
+If your `::init` method stores `MY_PROPERTY` in a `my_property` instance variable, then a test can, for example, check the property::
+
+  if (self.my_property eq 1) then ...
+
+or, perhaps, indicate that it should be skipped::
+
+  assert, my_property ne 1, 'skipping because MY_PROPERTY is not 1', /skip
+
+This provides a convenient way to run your tests in various modes, skip certain tests, or pass other information to your tests.
+
+
+Checking test coverage
+----------------------
+
+IDL 8.4 adds the ability to determine which lines of a routine have been executed since last checked. This allows mgunit to determine code coverage, i.e., to specify which lines of the tested routines are not actually executed during the tests. These lines are not tested by the current tests, indicating that tests with input specific to reach those lines are needed.
+
+For example, in the `::init` method for our `mg_evalexpr` test case, `mg_evalexpr_ut::init`, we simply indicate which routines should be checked for coverage by adding the following line::
+
+  self->addTestingRoutine, ['mg_evalexpr', $
+                            'mg_evalexpr_parse', $
+                            'mg_evalexpr_lookup', $
+                            'mg_evalexpr_expr', $
+                            'mg_evalexpr_superscript', $
+                            'mg_evalexpr_term', $
+                            'mg_evalexpr_factor'], $
+                           /is_function
+
+Running, mgunit in the normal manner now gives coverage information, indicating a summary percentage covered as well as which lines of which routines are not covered::
+
+  IDL> mgunit, 'mg_evalexpr_ut'
+  "All tests" test suite starting (1 test suite/case, 8 tests)
+    "mg_evalexpr_ut" test case starting (8 tests)
+      test_basic: passed (0.000848 seconds)
+      test_error1: passed (0.000223 seconds)
+      test_function1: passed (0.000436 seconds)
+      test_order1: passed (0.000196 seconds)
+      test_order2: passed (0.000318 seconds)
+      test_order3: passed (0.000527 seconds)
+      test_subshash: passed (0.000422 seconds)
+      test_subsstruct: passed (0.000266 seconds)
+    Test coverage: 92.4%
+      Untested lines
+        mg_evalexpr_parse: lines 102
+        mg_evalexpr_lookup: lines 163-164
+        mg_evalexpr_expr: lines 195-197
+        mg_evalexpr_term: lines 266-268
+      Completely covered routines
+        mg_evalexpr, mg_evalexpr_superscript, mg_evalexpr_factor
+    Results: 8 / 8 tests passed, 0 skipped
+  Results: 8 / 8 tests passed, 0 skipped (92.4% coverage)
+
+
 Test templates
 --------------
 
