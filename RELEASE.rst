@@ -3,6 +3,7 @@ Release notes
 
 mgunit 1.5
 ----------
+*Released 19 May 2015*
 
 * Passing keywords to MGUNIT down to MGutTestCase subclasses.
 
