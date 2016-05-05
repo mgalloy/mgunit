@@ -146,7 +146,7 @@ pro mgunit, tests, $
 
     for i = 0L, n_elements(runnerName) - 1L do begin
       f = n_elements(f) eq 0L ? 0L : i mod n_elements(filename)
-      _filename = n_elements(filename) eq 0L ? '' : filename[f]
+      _filename = n_elements(filename) eq 0L ? !null : filename[f]
       _color = (keyword_set(color) || mgunit_findIfTty()) $
                  && (n_elements(filename) eq 0L || strlen(filename[f]) eq 0L)
       testRunner->add, obj_new(runnerName[i], $
