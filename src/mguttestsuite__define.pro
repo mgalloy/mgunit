@@ -278,7 +278,7 @@ pro mguttestsuite::add, tests, all=all, _extra=e
                            count=nTestDirs)
     for d = 0L, nTestDirs - 1L do begin
       ; if there is a *_uts__define.pro here then add it
-      uts = file_search(testDirs[d] + '*_uts__define.pro', $
+      uts = file_search(testDirs[d], '*_uts__define.pro', $
                         count=nTestSuites)
       if (nTestSuites gt 0) then begin
         suiteName = file_basename(uts[0])
@@ -291,7 +291,7 @@ pro mguttestsuite::add, tests, all=all, _extra=e
 
       ; if there isn't a *_uts__define.pro, but there are unit tests here
       ; then create a new test suite
-      uts = file_search(testDirs[d] + '*_ut__define.pro', $
+      uts = file_search(testDirs[d], '*_ut__define.pro', $
                         count=nTestCases)
       if (nTestCases eq 0) then continue   ; finished with this directory
 
