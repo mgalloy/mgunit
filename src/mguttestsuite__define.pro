@@ -501,7 +501,7 @@ pro mguttestsuite::addTestingFolder, folders
   
   for f = 0L, n_elements(folders) do begin
     folder = folders[f]
-    if folder[0] eq '/' then $
+    if strmid(folder, 0, 1) eq '/' then $
       search_path = folder $
     else $
       search_path = filepath(folder, root_dir=self.home)
