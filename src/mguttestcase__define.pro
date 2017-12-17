@@ -494,7 +494,16 @@ pro mguttestcase::findTestnames
                                           ntests=ntests, $
                                           have_output=have_output)
 
-  superclassnames = obj_class(self, count=nsuperclasses, /superclass)
+  superclassnames = list(obj_class(self, count=nsuperclasses, /superclass), /extract)
+  
+  foreach class, superclassnames do begin
+    super = obj_class(class, count=nsuper, /superclass)
+    if (nsuper gt 0) then begin
+      superclassnames.Add, super, /extract
+      nsuperclasses += nsuper
+    endif
+  endforeach
+  
   for s = 0L, nsuperclasses - 1L do begin
     tnames = self->findTestnamesForClass(superclassnames[s], $
                                          ntests=nsupertests, $
