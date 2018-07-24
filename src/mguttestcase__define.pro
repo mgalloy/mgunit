@@ -499,7 +499,7 @@ pro mguttestcase::findTestnames
   foreach class, superclassnames do begin
     super = obj_class(class, count=nsuper, /superclass)
     if (nsuper gt 0) then begin
-      superclassnames.Add, super, /extract
+      superclassnames->add, super, /extract
       nsuperclasses += nsuper
     endif
   endforeach
@@ -520,6 +520,8 @@ pro mguttestcase::findTestnames
       endelse
     endif
   endfor
+
+  obj_destroy, superclassnames
 
   ; record results
   self.ntests = ntests
