@@ -28,6 +28,10 @@ endif ()
 find_package(IDL)
 find_package(IDLdoc)
 
+include(${CMAKE_SOURCE_DIR}/mgcmake/GetDate.cmake)
+LONG_TODAY(mgunit_BUILD_DATE)
+message(STATUS "Build date = ${mgunit_BUILD_DATE}")
+
 add_subdirectory(docs)
 add_subdirectory(src)
 
@@ -72,6 +76,11 @@ set(MGUNIT_PACKAGE_VERSION "${VERSION}")
 set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${MGUNIT_PACKAGE_VERSION}")
 
 include(CPack)
+
+configure_file(idlpackage.json.in idlpackage.json @ONLY)
+install(FILES
+	  ${CMAKE_CURRENT_BINARY_DIR}/idlpackage.json
+	DESTINATION .)
 
 # script to build mgunit.sav only at "make install"
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/mgunit.sav DESTINATION lib)

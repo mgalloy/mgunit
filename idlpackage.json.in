@@ -1,0 +1,12 @@
+{
+  "Name": "mgunit",
+  "Version": "@VERSION@",
+  "Author": "Michael Galloy",
+  "Date": "@mgunit_BUILD_DATE@",
+  "Dependencies": [
+    {
+      "Name": "IDL",
+      "Version": "^6.2"
+    }   
+  ]
+}
