@@ -6,7 +6,7 @@
   "Dependencies": [
     {
       "Name": "IDL",
-      "Version": "^6.2"
+      "Version": ">6.2"
     }   
   ]
 }
