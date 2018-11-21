@@ -20,13 +20,13 @@ end
 
 def print_routines(functions, procedures):
   if procedures:
-    print 'procedures:'
+    print('procedures:')
     for p in procedures:
-      print '  %s' % p
+      print('  %s' % p)
   if functions:
-    print 'functions:'
+    print('functions:')
     for f in functions:
-      print '  %s' % f
+      print('  %s' % f)
 
 def print_testing_routine(routines, is_function):
   if routines:
@@ -42,13 +42,13 @@ def print_testing_routine(routines, is_function):
           suffix = ']'
       else:
         suffix = ', $'
-      print "%s'%s'%s" % (prefix, r, suffix)
+      print("%s'%s'%s" % (prefix, r, suffix))
 
 def print_testing_routines(functions, procedures, procedure_last, testname):
   functions.reverse()
   procedures.reverse()
-  print header % testname
-  
+  print(header % testname)
+
   if procedure_last:
     print_testing_routine(procedures, False)
     print_testing_routine(functions, True)
@@ -56,7 +56,7 @@ def print_testing_routines(functions, procedures, procedure_last, testname):
     print_testing_routine(functions, True)
     print_testing_routine(procedures, False)
 
-  print footer
+  print(footer)
 
 def determine_testname(filename):
   basename = os.path.basename(filename)
@@ -89,11 +89,11 @@ def find_routines(filename):
   return functions, procedures, procedure_last
 
 def usage():
-  print 'usage: routines.py [OPTIONS] [filename]'
-  print ''
-  print '-h|--help        : print this help message'
-  print '-t|--testing     : display mgunit code to add testing routines for this file'
-  print '-f |--file <arg> : specify filename to parse'
+  print('usage: routines.py [OPTIONS] [filename]')
+  print('')
+  print('-h|--help        : print this help message')
+  print('-t|--testing     : display mgunit code to add testing routines for this file')
+  print('-f |--file <arg> : specify filename to parse')
   sys.exit(0)
 
 def main(argv):
