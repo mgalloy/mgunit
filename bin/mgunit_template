@@ -56,6 +56,16 @@ def determine_name(filename):
     return basename
 
 
+def output_names(routines):
+    if len(routines[0]) > 0:
+        print('Procedures:')
+        print('  ' + '\n  '.join(routines[0]))
+
+    if len(routines[1]) > 0:
+        print('Functions:')
+        print('  ' + '\n  '.join(routines[1]))
+
+
 def output_template(name, routines, parent_class):
     pro_template = 'self->addTestingRoutine, {names}'
     function_template = 'self->addTestingRoutine, {names}, $\n{indent}/is_function'
@@ -87,11 +97,18 @@ def main():
                         type=str,
                         default='MGutTestCase',
                         help='parent class; default is MGutTestCase')
+    parser.add_argument('--names',
+                        help='set to just print routines in file',
+                        action='store_true')
     args = parser.parse_args()
 
     routines = parse_file(args.filename)
-    name = determine_name(args.filename)
-    output_template(name, routines, args.parent_class)
+
+    if args.names:
+        output_names(routines)
+    else:
+        name = determine_name(args.filename)
+        output_template(name, routines, args.parent_class)
 
 
 if __name__ == '__main__':
