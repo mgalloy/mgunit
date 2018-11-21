@@ -32,6 +32,7 @@ include(${CMAKE_SOURCE_DIR}/mgcmake/GetDate.cmake)
 LONG_TODAY(mgunit_BUILD_DATE)
 message(STATUS "Build date = ${mgunit_BUILD_DATE}")
 
+add_subdirectory(bin)
 add_subdirectory(docs)
 add_subdirectory(src)
 
