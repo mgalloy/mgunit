@@ -199,8 +199,8 @@ pro mguttestsuite::run
         r.resolved = 1B
         (*self.testing_routines)[i] = r
         dummy = code_coverage(r.name, $
-          function=r.is_function, $
-          /clear)
+                              function=r.is_function, $
+                              /clear)
       endelse
     endfor
   endif

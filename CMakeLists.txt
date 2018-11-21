@@ -1,6 +1,6 @@
 project(mgunit)
 set(VERSION_MAJOR "1")
-set(VERSION_MINOR "5")
+set(VERSION_MINOR "6")
 set(VERSION_PATCH "0")
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 SET(CMAKE_BUILD_TYPE Release)
@@ -80,8 +80,8 @@ include(CPack)
 
 configure_file(idlpackage.json.in idlpackage.json @ONLY)
 install(FILES
-	  ${CMAKE_CURRENT_BINARY_DIR}/idlpackage.json
-	DESTINATION .)
+          ${CMAKE_CURRENT_BINARY_DIR}/idlpackage.json
+        DESTINATION .)
 
 # script to build mgunit.sav only at "make install"
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/mgunit.sav DESTINATION lib)

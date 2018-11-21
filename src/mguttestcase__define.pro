@@ -398,11 +398,13 @@ pro mguttestcase::run
       endif
     endfor
     if (n_elements(*self.testing_routines) gt 0L) then begin
-      self.testRunner->reportTestCaseCoverage, covered_routines, $
-                                               *self.testing_routines, $
-                                               level=self.level, $
-                                               total_nlines=self.total_nlines, $
-                                               covered_nlines=self.covered_nlines
+      if (~self.failuresOnly) then begin
+        self.testRunner->reportTestCaseCoverage, covered_routines, $
+                                                 *self.testing_routines, $
+                                                 level=self.level, $
+                                                 total_nlines=self.total_nlines, $
+                                                 covered_nlines=self.covered_nlines
+      endif
     endif
   endif
 
@@ -499,7 +501,7 @@ pro mguttestcase::findTestnames
   foreach class, superclassnames do begin
     super = obj_class(class, count=nsuper, /superclass)
     if (nsuper gt 0) then begin
-      superclassnames.Add, super, /extract
+      superclassnames->add, super, /extract
       nsuperclasses += nsuper
     endif
   endforeach
@@ -520,6 +522,8 @@ pro mguttestcase::findTestnames
       endelse
     endif
   endfor
+
+  obj_destroy, superclassnames
 
   ; record results
   self.ntests = ntests

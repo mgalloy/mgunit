@@ -1,6 +1,21 @@
 Release notes
 =============
 
+mgunit 1.6
+----------
+*Released 24 July 2018*
+
+* Fix for bug when no filename with jUnit output format
+
+* Recursively search directories below test suite home directory for *_ut. pro
+  and *_uts.pro files
+
+* Fixed for bug in mguttestsuite_define::addTestingFolder that did not add
+  absolute paths correctly
+
+* Add superclasses of test classes recursively
+
+
 mgunit 1.5
 ----------
 *Released 19 May 2015*
