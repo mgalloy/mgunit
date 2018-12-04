@@ -74,14 +74,14 @@ def output_template(name, routines, parent_class):
         testing_procedures = ''        
     else:
         names = [f"'{n}'" for n in routines[0]]
-        names = '[' + (', $\n' + 28 * ' ').join(names) + ']'
+        names = '[' + (', $\n' + 28 * ' ').join(reversed(names)) + ']'
         testing_procedures = pro_template.format(names=names)
 
     if len(routines[1]) == 0:
         testing_functions = ''
     else:
         names = [f"'{n}'" for n in routines[1]]
-        names = '[' + (', $\n' + 28 * ' ').join(names) + ']'
+        names = '[' + (', $\n' + 28 * ' ').join(reversed(names)) + ']'
         testing_functions = function_template.format(names=names, indent=27 * ' ')
 
     print(TEMPLATE.format(name=name,
