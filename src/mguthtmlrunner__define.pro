@@ -283,7 +283,35 @@ pro mguthtmlrunner::reportTestCaseCoverage, covered_routines, tested_routines, $
                                             covered_nlines=covered_nlines
   compile_opt strictarr
 
-  ; TODO: implement
+  self->_print, self.lun, $
+                string(100.0 * covered_nlines / total_nlines, $
+                       format='(%"<div class=\"coverage\"><h1>Test coverage: %0.1f\%</h1>")')
+  ind = where(tested_routines.untested_lines ne '', n_untested_routines)
+  if (n_untested_routines gt 0L) then begin
+    self->_print, self.lun, $
+                  string('<h2>Untested lines</h2><ul>', $
+                         format='(%"%s")')
+  endif
+  for i = 0L, n_elements(tested_routines) - 1L do begin
+    if (tested_routines[i].untested_lines ne '') then begin
+      self->_print, self.lun, $
+                    string(tested_routines[i].name, $
+                           tested_routines[i].untested_lines, $
+                           format='(%"<li>%s: lines %s</li>")')
+    endif
+  endfor
+  if (n_untested_routines gt 0L) then begin
+    self->_print, self.lun, '</ul>'
+  endif
+  if (n_elements(covered_routines) gt 0L) then begin
+    self->_print, self.lun, $
+                  string('<h2>Completely covered routines</h2>', $
+                         format='(%"%s")')
+    self->_print, self.lun, $
+                  string(strjoin(strtrim(covered_routines, 2), ', '), $
+                         format='(%"<ul><li>%s</li></ul>")')
+  endif
+  self->_print, self.lun, '</div>'
 end
 
 

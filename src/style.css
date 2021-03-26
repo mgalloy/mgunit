@@ -24,3 +24,7 @@ ol li { }
 
 ul.testsuite { list-style-type: circle; }
 ul.testcase {list-style-type: square; }
+
+div.coverage h1 {font-size: 13pt; font-weight: normal; margin-top: 0; margin-bottom: 0; font-style: italic;}
+div.coverage h2 {font-size: 13pt; font-weight: normal; margin-top: 0; margin-bottom: 0; margin-left: 1em; font-style: italic;}
+div.coverage ul {list-style-type: disc; margin-left: 1em; color: #666;}
