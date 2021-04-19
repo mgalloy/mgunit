@@ -71,6 +71,10 @@ end
 ;     number of tests that were skipped
 ;   ntests : out, optional, type=long
 ;     number of tests
+;   total_nlines : out. optional, type=integer
+;     total number off source code lines in tested routines
+;   covered_nlines : out, optional, type=integer
+;     number of tested lines
 ;   failures_only : in, optional, type=boolean
 ;     report only failed tests
 ;   version : in, optional, type=boolean
@@ -90,6 +94,8 @@ pro mgunit, tests, $
             nfail=nfail, $
             nskip=nskip, $
             ntests=ntests, $
+            total_nlines=total_nlines, $
+            covered_nlines=covered_nlines, $
             failures_only=failuresOnly, $
             version=version, $
             _extra=e
@@ -160,7 +166,9 @@ pro mgunit, tests, $
     testsuite->run
     if (keyword_set(failuresOnly)) then testsuite->display
     testsuite->getProperty, npass=npass, nfail=nfail, nskip=nskip, $
-                            ntests=ntests
+                            ntests=ntests, $
+                            total_nlines=total_nlines, $
+                            covered_nlines=covered_nlines
 
     if (~keyword_set(gui)) then obj_destroy, testRunner
   endif
