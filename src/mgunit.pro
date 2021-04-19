@@ -71,7 +71,7 @@ end
 ;     number of tests that were skipped
 ;   ntests : out, optional, type=long
 ;     number of tests
-;   total_nlines : out. optional, type=integer
+;   total_nlines : out, optional, type=integer
 ;     total number off source code lines in tested routines
 ;   covered_nlines : out, optional, type=integer
 ;     number of tested lines
