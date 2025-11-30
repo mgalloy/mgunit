@@ -1,13 +1,13 @@
+# required version of CMake
+cmake_minimum_required(VERSION 3.12)
+cmake_policy(SET CMP0017 NEW)
+
 project(mgunit)
 set(VERSION_MAJOR "1")
 set(VERSION_MINOR "6")
 set(VERSION_PATCH "0")
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 SET(CMAKE_BUILD_TYPE Release)
-
-# required version of CMake
-cmake_minimum_required(VERSION 2.8.3)
-cmake_policy(SET CMP0017 NEW)
 
 set(CMAKE_MODULE_PATH
   ${CMAKE_SOURCE_DIR}/mgcmake/Modules

@@ -30,8 +30,8 @@ def parse_file(filename):
     with open(filename, 'r') as f:
         text = f.read()
 
-    pro_pattern = '^\s*pro\s+([$a-zA-Z][$\w:]*)'
-    function_pattern = '^\s*function\s+([$a-zA-Z][$\w:]*)'
+    pro_pattern = r'^\s*pro\s+([$a-zA-Z][$\w:]*)'
+    function_pattern = r'^\s*function\s+([$a-zA-Z][$\w:]*)'
     pro_re = re.compile(pro_pattern)
     function_re = re.compile(function_pattern)
 
