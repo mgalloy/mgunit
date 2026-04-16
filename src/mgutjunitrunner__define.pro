@@ -187,7 +187,7 @@ pro mgutjunitrunner::reportTestResult, msg, passed=passed, $
   indent = level eq 0L ? '' : string(bytarr(2 * level) + 32B)
 
   if (skipped) then begin
-    _msg = string(indent, msg, format='(%"%s    <failure>skipped: %s</failure>")')
+    _msg = string(indent, msg, format='(%"%s    <skipped>%s</skipped>")')
     self->_print, self.lun, _msg    
   endif else if (~keyword_set(passed)) then begin
     _msg = string(indent, msg, format='(%"%s    <failure>%s</failure>")')
