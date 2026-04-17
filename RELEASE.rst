@@ -1,6 +1,13 @@
 Release notes
 =============
 
+mgunit 1.6.1
+------------
+*Released 17 April 2026*
+
+* Fix for reporting skipped tests with jUnit output format
+
+
 mgunit 1.6
 ----------
 *Released 24 July 2018*
